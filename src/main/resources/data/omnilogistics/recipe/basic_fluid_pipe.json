@@ -1,0 +1,20 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "CGC",
+  "G G",
+  "CGC"
+ ],
+ "key": {
+  "C": {
+   "tag": "c:ingots/copper"
+  },
+  "G": {
+   "tag": "c:glass_blocks"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:basic_fluid_pipe",
+  "count": 8
+ }
+}

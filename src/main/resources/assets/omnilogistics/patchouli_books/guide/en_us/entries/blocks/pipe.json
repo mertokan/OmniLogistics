@@ -1,0 +1,36 @@
+{
+ "name": "Pipes and Cables",
+ "icon": "omnilogistics:basic_item_pipe",
+ "category": "omnilogistics:blocks",
+ "sortnum": 1,
+ "pages": [
+  {
+   "type": "patchouli:text",
+   "text": "Three conduit types (items, FE energy, fluids) in four tiers: plain, Gilded, Crystal and Netherforged. Every face is labelled from the $(bold)neighbour block's$() side: $(bold)NORM$() (connected: accepts input and receives deliveries), $(bold)EXTRACT$() (the conduit takes items out of that neighbour, green arm), $(bold)INSERT$() (the conduit only delivers into it, orange arm) or $(bold)OFF$() (disconnected, no arm)."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "Set EXTRACT on the source side and everything flows to every other connected inventory, through as many conduits as you like. Conduits only connect to conduits of the same type. Right-click a conduit at the $(bold)end of a run$() (touching an inventory or machine) to set its faces and redstone mode; conduits in the middle are plain cables. Item pipes have a $(bold)card slot$(): drop in a Logistics Card and only items passing its filter travel, right-click the card in the slot to edit it. No card = everything passes. Tier: 8 / 32 / 128 / 512 items per move, 2k / 8k / 32k / 128k FE per tick, 1 / 4 / 16 / 64 buckets per move. Infinity tier is creative-only and effectively unlimited."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "$(bold)Redstone$(): wrench the conduit centre (not an arm) to cycle Always / Only with signal / Only without signal for that conduit, or use the button in the end GUI. A gated conduit neither pulls nor delivers. Everything numeric (FE cost, ranges, rates) lives in config/omnilogistics-common.toml."
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:basic_item_pipe"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:basic_energy_cable"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:basic_fluid_pipe"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:advanced_item_pipe"
+  }
+ ]
+}

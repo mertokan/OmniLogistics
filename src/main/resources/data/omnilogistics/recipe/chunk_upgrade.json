@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "EGE",
+  "GDG",
+  "EGE"
+ ],
+ "key": {
+  "E": {
+   "tag": "c:ender_pearls"
+  },
+  "G": {
+   "tag": "c:ingots/gold"
+  },
+  "D": {
+   "tag": "c:gems/diamond"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:chunk_upgrade",
+  "count": 1
+ }
+}

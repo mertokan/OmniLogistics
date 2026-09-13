@@ -1,0 +1,582 @@
+{
+ "multipart": [
+  {
+   "when": {
+    "north": "none",
+    "east": "plain|pull|push",
+    "west": "plain|pull|push",
+    "up": "none",
+    "down": "none"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_strip_h"
+   }
+  },
+  {
+   "when": {
+    "north": "none",
+    "up": "plain|pull|push",
+    "down": "plain|pull|push",
+    "east": "none",
+    "west": "none"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_strip_v"
+   }
+  },
+  {
+   "when": {
+    "OR": [
+     {
+      "north": "none",
+      "east": "plain|pull|push",
+      "west": "none"
+     },
+     {
+      "north": "none",
+      "east": "none",
+      "west": "plain|pull|push"
+     },
+     {
+      "north": "none",
+      "up": "plain|pull|push",
+      "down": "none"
+     },
+     {
+      "north": "none",
+      "up": "none",
+      "down": "plain|pull|push"
+     },
+     {
+      "north": "none",
+      "east": "none",
+      "west": "none",
+      "up": "none",
+      "down": "none"
+     },
+     {
+      "north": "none",
+      "east": "plain|pull|push",
+      "west": "plain|pull|push",
+      "up": "plain|pull|push",
+      "down": "plain|pull|push"
+     }
+    ]
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_cap"
+   }
+  },
+  {
+   "when": {
+    "south": "none",
+    "east": "plain|pull|push",
+    "west": "plain|pull|push",
+    "up": "none",
+    "down": "none"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_strip_h",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "south": "none",
+    "up": "plain|pull|push",
+    "down": "plain|pull|push",
+    "east": "none",
+    "west": "none"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_strip_v",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "OR": [
+     {
+      "south": "none",
+      "east": "plain|pull|push",
+      "west": "none"
+     },
+     {
+      "south": "none",
+      "east": "none",
+      "west": "plain|pull|push"
+     },
+     {
+      "south": "none",
+      "up": "plain|pull|push",
+      "down": "none"
+     },
+     {
+      "south": "none",
+      "up": "none",
+      "down": "plain|pull|push"
+     },
+     {
+      "south": "none",
+      "east": "none",
+      "west": "none",
+      "up": "none",
+      "down": "none"
+     },
+     {
+      "south": "none",
+      "east": "plain|pull|push",
+      "west": "plain|pull|push",
+      "up": "plain|pull|push",
+      "down": "plain|pull|push"
+     }
+    ]
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_cap",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "east": "none",
+    "up": "plain|pull|push",
+    "down": "plain|pull|push",
+    "north": "none",
+    "south": "none"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_strip_v",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "east": "none",
+    "north": "plain|pull|push",
+    "south": "plain|pull|push",
+    "up": "none",
+    "down": "none"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_strip_h",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "OR": [
+     {
+      "east": "none",
+      "up": "plain|pull|push",
+      "down": "none"
+     },
+     {
+      "east": "none",
+      "up": "none",
+      "down": "plain|pull|push"
+     },
+     {
+      "east": "none",
+      "north": "plain|pull|push",
+      "south": "none"
+     },
+     {
+      "east": "none",
+      "north": "none",
+      "south": "plain|pull|push"
+     },
+     {
+      "east": "none",
+      "up": "none",
+      "down": "none",
+      "north": "none",
+      "south": "none"
+     },
+     {
+      "east": "none",
+      "up": "plain|pull|push",
+      "down": "plain|pull|push",
+      "north": "plain|pull|push",
+      "south": "plain|pull|push"
+     }
+    ]
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_cap",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "west": "none",
+    "up": "plain|pull|push",
+    "down": "plain|pull|push",
+    "north": "none",
+    "south": "none"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_strip_v",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "west": "none",
+    "north": "plain|pull|push",
+    "south": "plain|pull|push",
+    "up": "none",
+    "down": "none"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_strip_h",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "OR": [
+     {
+      "west": "none",
+      "up": "plain|pull|push",
+      "down": "none"
+     },
+     {
+      "west": "none",
+      "up": "none",
+      "down": "plain|pull|push"
+     },
+     {
+      "west": "none",
+      "north": "plain|pull|push",
+      "south": "none"
+     },
+     {
+      "west": "none",
+      "north": "none",
+      "south": "plain|pull|push"
+     },
+     {
+      "west": "none",
+      "up": "none",
+      "down": "none",
+      "north": "none",
+      "south": "none"
+     },
+     {
+      "west": "none",
+      "up": "plain|pull|push",
+      "down": "plain|pull|push",
+      "north": "plain|pull|push",
+      "south": "plain|pull|push"
+     }
+    ]
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_cap",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "up": "none",
+    "east": "plain|pull|push",
+    "west": "plain|pull|push",
+    "north": "none",
+    "south": "none"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_strip_v",
+    "x": 270,
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "up": "none",
+    "north": "plain|pull|push",
+    "south": "plain|pull|push",
+    "east": "none",
+    "west": "none"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_strip_v",
+    "x": 270
+   }
+  },
+  {
+   "when": {
+    "OR": [
+     {
+      "up": "none",
+      "east": "plain|pull|push",
+      "west": "none"
+     },
+     {
+      "up": "none",
+      "east": "none",
+      "west": "plain|pull|push"
+     },
+     {
+      "up": "none",
+      "north": "plain|pull|push",
+      "south": "none"
+     },
+     {
+      "up": "none",
+      "north": "none",
+      "south": "plain|pull|push"
+     },
+     {
+      "up": "none",
+      "east": "none",
+      "west": "none",
+      "north": "none",
+      "south": "none"
+     },
+     {
+      "up": "none",
+      "east": "plain|pull|push",
+      "west": "plain|pull|push",
+      "north": "plain|pull|push",
+      "south": "plain|pull|push"
+     }
+    ]
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_cap",
+    "x": 270
+   }
+  },
+  {
+   "when": {
+    "down": "none",
+    "east": "plain|pull|push",
+    "west": "plain|pull|push",
+    "north": "none",
+    "south": "none"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_strip_v",
+    "x": 90,
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "down": "none",
+    "north": "plain|pull|push",
+    "south": "plain|pull|push",
+    "east": "none",
+    "west": "none"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_strip_v",
+    "x": 90
+   }
+  },
+  {
+   "when": {
+    "OR": [
+     {
+      "down": "none",
+      "east": "plain|pull|push",
+      "west": "none"
+     },
+     {
+      "down": "none",
+      "east": "none",
+      "west": "plain|pull|push"
+     },
+     {
+      "down": "none",
+      "north": "plain|pull|push",
+      "south": "none"
+     },
+     {
+      "down": "none",
+      "north": "none",
+      "south": "plain|pull|push"
+     },
+     {
+      "down": "none",
+      "east": "none",
+      "west": "none",
+      "north": "none",
+      "south": "none"
+     },
+     {
+      "down": "none",
+      "east": "plain|pull|push",
+      "west": "plain|pull|push",
+      "north": "plain|pull|push",
+      "south": "plain|pull|push"
+     }
+    ]
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_cap",
+    "x": 90
+   }
+  },
+  {
+   "when": {
+    "north": "plain"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm"
+   }
+  },
+  {
+   "when": {
+    "north": "pull"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm_pull"
+   }
+  },
+  {
+   "when": {
+    "north": "push"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm_push"
+   }
+  },
+  {
+   "when": {
+    "east": "plain"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "east": "pull"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm_pull",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "east": "push"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm_push",
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "south": "plain"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "south": "pull"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm_pull",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "south": "push"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm_push",
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "west": "plain"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "west": "pull"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm_pull",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "west": "push"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm_push",
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "up": "plain"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm",
+    "x": 270
+   }
+  },
+  {
+   "when": {
+    "up": "pull"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm_pull",
+    "x": 270
+   }
+  },
+  {
+   "when": {
+    "up": "push"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm_push",
+    "x": 270
+   }
+  },
+  {
+   "when": {
+    "down": "plain"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm",
+    "x": 90
+   }
+  },
+  {
+   "when": {
+    "down": "pull"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm_pull",
+    "x": 90
+   }
+  },
+  {
+   "when": {
+    "down": "push"
+   },
+   "apply": {
+    "model": "omnilogistics:block/infinity_energy_cable_arm_push",
+    "x": 90
+   }
+  }
+ ]
+}

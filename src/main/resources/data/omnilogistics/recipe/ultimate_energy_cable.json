@@ -1,0 +1,20 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "PPP",
+  "PXP",
+  "PPP"
+ ],
+ "key": {
+  "P": {
+   "item": "omnilogistics:elite_energy_cable"
+  },
+  "X": {
+   "tag": "c:ingots/netherite"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:ultimate_energy_cable",
+  "count": 8
+ }
+}

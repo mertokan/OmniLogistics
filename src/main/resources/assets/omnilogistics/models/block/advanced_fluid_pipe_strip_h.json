@@ -1,0 +1,8 @@
+{
+ "parent": "omnilogistics:block/pipe_strip_h",
+ "render_type": "minecraft:translucent",
+ "textures": {
+  "pipe": "omnilogistics:block/pipe_fluid_advanced",
+  "particle": "omnilogistics:block/pipe_fluid_advanced"
+ }
+}

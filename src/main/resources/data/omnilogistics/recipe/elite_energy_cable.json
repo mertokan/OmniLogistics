@@ -1,0 +1,20 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "PPP",
+  "PXP",
+  "PPP"
+ ],
+ "key": {
+  "P": {
+   "item": "omnilogistics:advanced_energy_cable"
+  },
+  "X": {
+   "tag": "c:gems/diamond"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:elite_energy_cable",
+  "count": 8
+ }
+}

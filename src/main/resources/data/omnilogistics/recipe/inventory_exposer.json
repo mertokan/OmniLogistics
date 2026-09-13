@@ -1,0 +1,29 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "IEI",
+  "CHC",
+  "IRI"
+ ],
+ "key": {
+  "I": {
+   "tag": "c:ingots/iron"
+  },
+  "E": {
+   "item": "minecraft:ender_pearl"
+  },
+  "C": {
+   "tag": "c:ingots/copper"
+  },
+  "H": {
+   "item": "minecraft:hopper"
+  },
+  "R": {
+   "item": "minecraft:redstone"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:inventory_exposer",
+  "count": 1
+ }
+}

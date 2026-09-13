@@ -1,0 +1,9 @@
+.gradle/
+build/
+run/
+runs/
+.idea/
+*.iml
+libs/                 # third-party jars used for local testing, not ours to redistribute
+tools/__pycache__/
+*.log

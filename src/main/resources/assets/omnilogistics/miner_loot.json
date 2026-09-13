@@ -1,0 +1,54 @@
+{
+ "basic": {
+  "minecraft:cobblestone": 20,
+  "minecraft:coal_ore": 24,
+  "minecraft:iron_ore": 18,
+  "minecraft:copper_ore": 18,
+  "minecraft:redstone_ore": 8,
+  "minecraft:lapis_ore": 5,
+  "minecraft:gold_ore": 5,
+  "minecraft:gravel": 2
+ },
+ "advanced": {
+  "minecraft:cobblestone": 8,
+  "minecraft:coal_ore": 18,
+  "minecraft:iron_ore": 18,
+  "minecraft:copper_ore": 14,
+  "minecraft:redstone_ore": 10,
+  "minecraft:lapis_ore": 7,
+  "minecraft:gold_ore": 8,
+  "minecraft:nether_quartz_ore": 8,
+  "minecraft:nether_gold_ore": 4,
+  "minecraft:diamond_ore": 3,
+  "minecraft:emerald_ore": 2
+ },
+ "elite": {
+  "minecraft:coal_ore": 12,
+  "minecraft:iron_ore": 16,
+  "minecraft:copper_ore": 10,
+  "minecraft:redstone_ore": 12,
+  "minecraft:lapis_ore": 8,
+  "minecraft:gold_ore": 10,
+  "minecraft:nether_quartz_ore": 10,
+  "minecraft:nether_gold_ore": 5,
+  "minecraft:diamond_ore": 6,
+  "minecraft:emerald_ore": 4,
+  "minecraft:amethyst_shard": 4,
+  "minecraft:glowstone_dust": 3,
+  "minecraft:ancient_debris": 1
+ },
+ "ultimate": {
+  "minecraft:iron_ore": 12,
+  "minecraft:gold_ore": 12,
+  "minecraft:redstone_ore": 10,
+  "minecraft:lapis_ore": 8,
+  "minecraft:nether_quartz_ore": 8,
+  "minecraft:diamond_ore": 12,
+  "minecraft:deepslate_diamond_ore": 6,
+  "minecraft:emerald_ore": 8,
+  "minecraft:ancient_debris": 4,
+  "minecraft:amethyst_shard": 5,
+  "minecraft:glowstone_dust": 4,
+  "minecraft:ender_pearl": 3
+ }
+}

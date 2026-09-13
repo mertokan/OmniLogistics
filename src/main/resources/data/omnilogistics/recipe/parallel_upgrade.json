@@ -1,0 +1,26 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "IHI",
+  "RCR",
+  "IHI"
+ ],
+ "key": {
+  "I": {
+   "tag": "c:ingots/iron"
+  },
+  "H": {
+   "item": "minecraft:hopper"
+  },
+  "R": {
+   "tag": "c:dusts/redstone"
+  },
+  "C": {
+   "tag": "c:ingots/copper"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:parallel_upgrade",
+  "count": 1
+ }
+}

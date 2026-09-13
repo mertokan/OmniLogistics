@@ -1,0 +1,29 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "CEC",
+  "EME",
+  "CEC"
+ ],
+ "key": {
+  "C": {
+   "tag": "c:ingots/gold"
+  },
+  "E": {
+   "item": "minecraft:ender_eye"
+  },
+  "M": {
+   "item": "omnilogistics:basic_void_miner"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:advanced_void_miner",
+  "count": 1
+ },
+ "neoforge:conditions": [
+  {
+   "type": "omnilogistics:module",
+   "module": "mining"
+  }
+ ]
+}

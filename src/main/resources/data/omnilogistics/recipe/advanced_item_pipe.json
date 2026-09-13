@@ -1,0 +1,20 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "PPP",
+  "PXP",
+  "PPP"
+ ],
+ "key": {
+  "P": {
+   "item": "omnilogistics:basic_item_pipe"
+  },
+  "X": {
+   "tag": "c:ingots/gold"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:advanced_item_pipe",
+  "count": 8
+ }
+}

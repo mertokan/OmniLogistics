@@ -1,0 +1,7 @@
+{
+ "variants": {
+  "": {
+   "model": "omnilogistics:block/basic_void_miner"
+  }
+ }
+}

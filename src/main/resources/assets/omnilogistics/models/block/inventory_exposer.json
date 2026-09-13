@@ -1,0 +1,171 @@
+{
+ "parent": "minecraft:block/block",
+ "textures": {
+  "top": "omnilogistics:block/exposer_top",
+  "side": "omnilogistics:block/exposer_side",
+  "panel": "omnilogistics:block/exposer_panel",
+  "particle": "omnilogistics:block/exposer_side"
+ },
+ "elements": [
+  {
+   "from": [
+    0,
+    0,
+    0
+   ],
+   "to": [
+    16,
+    16,
+    16
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#side"
+    },
+    "south": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#side"
+    },
+    "east": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#side"
+    },
+    "west": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#side"
+    },
+    "up": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#top"
+    },
+    "down": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#top"
+    }
+   }
+  },
+  {
+   "from": [
+    3,
+    3,
+    -0.5
+   ],
+   "to": [
+    13,
+    13,
+    0
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#panel"
+    }
+   }
+  },
+  {
+   "from": [
+    3,
+    3,
+    16
+   ],
+   "to": [
+    13,
+    13,
+    16.5
+   ],
+   "faces": {
+    "south": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#panel"
+    }
+   }
+  },
+  {
+   "from": [
+    -0.5,
+    3,
+    3
+   ],
+   "to": [
+    0,
+    13,
+    13
+   ],
+   "faces": {
+    "west": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#panel"
+    }
+   }
+  },
+  {
+   "from": [
+    16,
+    3,
+    3
+   ],
+   "to": [
+    16.5,
+    13,
+    13
+   ],
+   "faces": {
+    "east": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#panel"
+    }
+   }
+  }
+ ]
+}

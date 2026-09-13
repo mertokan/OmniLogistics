@@ -1,0 +1,32 @@
+{
+ "name": "Upgrades",
+ "icon": "omnilogistics:speed_upgrade",
+ "category": "omnilogistics:blocks",
+ "sortnum": 9,
+ "pages": [
+  {
+   "type": "patchouli:text",
+   "text": "Bandwidth, Lane and Antenna upgrades stack in their slot (3 / 2 / 3). Modules are single. Extractor: Bandwidth, Lane, Component Module, Fusion Module. Router: Bandwidth, Antenna. $(bold)Bandwidth Upgrades no longer change timing$() - every machine runs at the tick rate you type into its GUI. They raise throughput instead: x2 card actions per cycle in the router, x2 items and FE per cycle in the miner, half the FE per operation in the extractor."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "$(bold)Chunk Loader Upgrade$() (router, 1): keeps the router's own chunk and the chunks its cards point at ticking while you are away - up to 9 chunks, config $(italic)router.loadedChunks$()."
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:speed_upgrade"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:parallel_upgrade"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:range_upgrade"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:chunk_upgrade"
+  }
+ ]
+}

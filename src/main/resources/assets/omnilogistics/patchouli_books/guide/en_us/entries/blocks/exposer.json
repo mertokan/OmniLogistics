@@ -1,0 +1,20 @@
+{
+ "name": "Inventory Exposer",
+ "icon": "omnilogistics:inventory_exposer",
+ "category": "omnilogistics:blocks",
+ "sortnum": 2,
+ "pages": [
+  {
+   "type": "patchouli:text",
+   "text": "Pick one face as the $(bold)target$() (GUI or wrench). The inventory on that side is shown on all other faces as a filtered view: AE2 storage buses, RS external storage, hoppers and pipes only ever see items that pass the filter."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "Default filter is Mod Comps, so an exposer on a chest full of loot shows only the Apotheosis gear. Change the filter to expose anything else. Items that do not match are invisible and cannot be pulled through the exposer."
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:inventory_exposer"
+  }
+ ]
+}

@@ -1,0 +1,29 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "IBI",
+  "DGD",
+  "IRI"
+ ],
+ "key": {
+  "I": {
+   "tag": "c:ingots/iron"
+  },
+  "B": {
+   "item": "minecraft:book"
+  },
+  "D": {
+   "item": "minecraft:diamond"
+  },
+  "G": {
+   "item": "minecraft:grindstone"
+  },
+  "R": {
+   "item": "minecraft:redstone_block"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:component_extractor",
+  "count": 1
+ }
+}

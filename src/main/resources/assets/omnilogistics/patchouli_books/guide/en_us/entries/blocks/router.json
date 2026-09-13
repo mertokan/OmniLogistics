@@ -1,0 +1,68 @@
+{
+ "name": "Wireless Router and Cards",
+ "icon": "omnilogistics:wireless_router",
+ "category": "omnilogistics:blocks",
+ "sortnum": 3,
+ "pages": [
+  {
+   "type": "patchouli:text",
+   "text": "No cables. Hold a card, sneak and right-click a block face to bind it. Cards with a filter open their GUI on right-click in the air; Energy and Fluid cards flip EXTRACT / INSERT instead. Icons change with mode and the LED turns green once bound."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "$(bold)Logistics Card$(): items in / out. $(bold)Energy Card$(): FE in / out. $(bold)Fluid Card$(): fluids in / out of the router tank. $(bold)Void Card$(): destroys matching items that reach the buffer. $(bold)Vacuum Card$(): sucks matching drops around the router (or the bound block) into the buffer."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "$(bold)Activator Card$(): right-clicks the bound face with the buffer item, like a player. $(bold)Breaker Card$(): breaks the bound block, drops go to the buffer. $(bold)Placer Card$(): places the buffer item at the bound spot. $(bold)Detector Card$(): the router emits redstone 15 while the bound inventory holds a matching item."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "Right-click a card $(bold)inside the router$() to configure it in place: filter cards open their GUI, Energy and Fluid cards flip EXTRACT / INSERT. The $(bold)tick field$() next to the buffer sets how often the router acts: type anything from 1 to 200 ticks, no upgrade unlocks it."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "Up to 8 cards act in slot order, round-robin. Two upgrade slots: each $(bold)Bandwidth Upgrade$() doubles how many card actions one cycle gets, each $(bold)Antenna Upgrade$() adds the base range again. Overclock a single card by crafting it with Bandwidth Upgrades (up to 3): every step doubles what it moves per action."
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:wireless_router"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:logistics_card"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:energy_card"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:fluid_card"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:void_card"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:vacuum_card"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:activator_card"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:breaker_card"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:placer_card"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:detector_card"
+  }
+ ]
+}

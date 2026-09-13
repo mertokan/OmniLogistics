@@ -1,0 +1,16 @@
+{
+ "name": "Bigger Filter Cards",
+ "icon": "omnilogistics:elite_logistics_card",
+ "category": "omnilogistics:blocks",
+ "sortnum": 8,
+ "pages": [
+  {
+   "type": "patchouli:text",
+   "text": "The plain Logistics Card whitelists $(bold)one$() item. The Gilded, Crystal and Netherforged cards are the same card with $(bold)4, 16 and 64$() reference slots: a stack passes if it matches $(bold)any$() of them, and the flags (Match Comps, Has Enchants, Blacklist...) still apply on top."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "Upgrade in the crafting grid: card + $(bold)gold ingot$() -> Gilded, + $(bold)diamond$() -> Crystal, + $(bold)netherite ingot$() -> Netherforged. The card keeps its filter, its binding, its mode and its speed, so you can grow a card you already set up. They work everywhere a Logistics Card works: pipes, the router, the Batch Distributor."
+  }
+ ]
+}

@@ -1,0 +1,36 @@
+{
+ "name": "Component Extractor",
+ "icon": "omnilogistics:component_extractor",
+ "category": "omnilogistics:blocks",
+ "sortnum": 4,
+ "pages": [
+  {
+   "type": "patchouli:text",
+   "text": "The base machine moves $(bold)enchantments onto books$(): gear in a lane, books (or bookshelves, worth 3) in the middle slot, 4000 FE per operation, 100 ticks unless you type another number. The gear stays in its lane and is cleaned in place; finished gear and outputs auto-eject into adjacent inventories."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "The $(bold)tick field$() under the lanes sets how long one operation takes: any value from 1 to 200 ticks, nothing to unlock first. Faster means more FE per second, not per operation."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "Four upgrade slots. $(bold)Component Module$(): also pulls items embedded in modded components out of gear (Apotheosis gems and the like). $(bold)Fusion Module$(): unlocks FUSE mode, the button in the GUI: the donor slot merges onto the gear, enchantments with anvil rules and every modded component the gear lacks."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "$(bold)Bandwidth Upgrade$() (up to 3): halves the FE per operation each, 4000 / 2000 / 1000 / 500 FE. $(bold)Lane Upgrade$() (up to 2): unlocks the second and third lane so three items process at once, each paying its own FE."
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:component_extractor"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:gem_module"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:fusion_module"
+  }
+ ]
+}

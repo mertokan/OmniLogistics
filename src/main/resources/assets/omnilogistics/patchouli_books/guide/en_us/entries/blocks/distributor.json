@@ -1,0 +1,32 @@
+{
+ "name": "Batch Distributor",
+ "icon": "omnilogistics:batch_distributor",
+ "category": "omnilogistics:blocks",
+ "sortnum": 7,
+ "pages": [
+  {
+   "type": "patchouli:text",
+   "text": "Automating a craft whose ingredients go to $(bold)several different places$() normally means one Pattern Provider per input and a sub-network. Put a Batch Distributor against a single Pattern Provider instead: six lanes, one Logistics Card per lane, and each card is bound (sneak + right-click) to the machine face it feeds."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "AE2 pushes one ordinary pattern into the block and walks the lanes in order, so $(bold)each ingredient lands in the first lane whose filter matches it$() and that lane delivers it to its own machine on the next tick. Give every lane a different filter: a lane with no filter accepts nothing (that is what stops lane 1 eating the batch), and a lane with only $(bold)Blacklist$() set is the deliberate catch-all."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "$(bold)You do not have to fill the filters in.$() A bound card with no filter is a $(bold)learner$(): the first ingredient that reaches it becomes its filter, and an ingredient another lane already asks for is never stolen. So the setup is: drop the cards in, bind each one to its machine, run the craft once. An $(bold)EXTRACT$() lane with no filter needs nothing at all - it takes whatever that machine holds that is not an ingredient delivered to it, which is the product."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "$(bold)CLUSTER$() mode (the button in the GUI) does the other half of the problem: instead of splitting one batch, it hands the WHOLE batch to one machine and the next batch to the next machine. Bind a lane to each of five identical machines, give the block one Pattern Provider, and the craft runs five times faster - no sub-network, no five providers. A machine that is still busy simply refuses the batch, so it goes to a free one. $(bold)Lane Upgrades$() add 3 lanes each, up to 12."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "Set the provider's push direction to the Distributor, or a chest touching it will steal batches. Switch a card to $(bold)EXTRACT$() to turn its lane around: it pulls the finished product out of that machine and pushes it into the return face (wrench a face to pin it, otherwise the first neighbour no lane targets), i.e. straight back into ME. The amber pip means two lanes share a filter, the only case where items go to the wrong machine."
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:batch_distributor"
+  }
+ ]
+}

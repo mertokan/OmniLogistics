@@ -1,0 +1,9 @@
+{
+ "parent": "minecraft:block/orientable",
+ "textures": {
+  "front": "omnilogistics:block/monitor_front",
+  "side": "omnilogistics:block/monitor_side",
+  "top": "omnilogistics:block/monitor_top",
+  "particle": "omnilogistics:block/monitor_side"
+ }
+}

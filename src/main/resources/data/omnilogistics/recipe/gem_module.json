@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "DED",
+  "EBE",
+  "DED"
+ ],
+ "key": {
+  "D": {
+   "tag": "c:gems/diamond"
+  },
+  "E": {
+   "tag": "c:gems/emerald"
+  },
+  "B": {
+   "item": "minecraft:book"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:gem_module",
+  "count": 1
+ }
+}

@@ -1,0 +1,32 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "GEG",
+  "CHC",
+  "IRI"
+ ],
+ "key": {
+  "G": {
+   "tag": "c:ingots/gold"
+  },
+  "E": {
+   "item": "minecraft:ender_eye"
+  },
+  "C": {
+   "tag": "c:ingots/copper"
+  },
+  "H": {
+   "item": "minecraft:hopper"
+  },
+  "I": {
+   "tag": "c:ingots/iron"
+  },
+  "R": {
+   "item": "minecraft:redstone"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:wireless_router",
+  "count": 1
+ }
+}

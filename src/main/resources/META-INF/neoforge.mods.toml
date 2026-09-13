@@ -1,0 +1,45 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="MIT"
+
+[[mods]]
+modId="omnilogistics"
+version="0.2.0"
+displayName="OmniLogistics"
+authors="mertokan"
+logoFile="logo.png"
+credits="Built against NeoForge capabilities only, so it works with AE2, Mekanism and Actually Additions without depending on any of them."
+description='''One card system for every machine in your pack.
+
+Bind a Logistics Card to any block by sneak-clicking it, drop the card into a pipe, a Wireless Router or a Batch
+Distributor, and the mod finds the working face of that machine by itself - no side configuration, on any mod's block.
+Filter by item, tag, enchantment or any data component, pick your own tick rate from 1 to 200, and move items, FE and
+fluids across dimensions.'''
+
+[[dependencies.omnilogistics]]
+modId="neoforge"
+type="required"
+versionRange="[21.1,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.omnilogistics]]
+modId="patchouli"
+type="optional"
+versionRange="[1.21.1-80,)"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.omnilogistics]]
+modId="jei"
+type="optional"
+versionRange="[19,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.omnilogistics]]
+modId="minecraft"
+type="required"
+versionRange="[1.21.1]"
+ordering="NONE"
+side="BOTH"

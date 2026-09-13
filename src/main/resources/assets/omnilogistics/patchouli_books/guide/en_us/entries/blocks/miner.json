@@ -1,0 +1,32 @@
+{
+ "name": "Void Miner",
+ "icon": "omnilogistics:basic_void_miner",
+ "category": "omnilogistics:blocks",
+ "sortnum": 7,
+ "pages": [
+  {
+   "type": "patchouli:text",
+   "text": "A one-block miner: feed it FE and it pulls ore blocks out of nothing. Every cycle rolls its tier's loot table ($(o)data/omnilogistics/loot_table/miner/<tier>.json$(), datapack-editable) and the item arrives in the four output slots, which auto-eject into every neighbour. Watch the beam: what you see coming down is what you get."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "$(bold)Card slot$(): a Logistics Card keeps only items passing its filter (right-click the card in the slot to edit it); a miss still spends the cycle. $(bold)Bandwidth Upgrades$() (up to 3) double the items - and the FE - per cycle each. A redstone signal pauses the miner. The $(bold)tick field$() sets the cycle length (1..200); the tiers start at 200 / 100 / 50 / 25 ticks and cost 2k / 8k / 32k / 128k FE per cycle, richer tables as you go up; every number is in config/omnilogistics-common.toml."
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:basic_void_miner"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:advanced_void_miner"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:elite_void_miner"
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:ultimate_void_miner"
+  }
+ ]
+}

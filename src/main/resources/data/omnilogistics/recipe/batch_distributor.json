@@ -1,0 +1,29 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "IHI",
+  "CRC",
+  "IGI"
+ ],
+ "key": {
+  "I": {
+   "tag": "c:ingots/iron"
+  },
+  "H": {
+   "item": "minecraft:hopper"
+  },
+  "C": {
+   "tag": "c:ingots/copper"
+  },
+  "R": {
+   "item": "omnilogistics:logistics_card"
+  },
+  "G": {
+   "tag": "c:ingots/gold"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:batch_distributor",
+  "count": 1
+ }
+}

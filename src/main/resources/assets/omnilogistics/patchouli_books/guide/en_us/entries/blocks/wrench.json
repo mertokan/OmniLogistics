@@ -1,0 +1,16 @@
+{
+ "name": "Logistics Wrench",
+ "icon": "omnilogistics:wrench",
+ "category": "omnilogistics:blocks",
+ "sortnum": 10,
+ "pages": [
+  {
+   "type": "patchouli:text",
+   "text": "Right-click a conduit arm: cycle NORM / EXTRACT / INSERT / OFF. Right-click the conduit centre: cycle the redstone mode (or turn an OFF face facing you back on). Right-click an exposer face: set (or clear) the target. $(bold)Sneak + right-click$() any OmniLogistics block: pick it up, block and contents go straight into your inventory. It is tagged c:tools/wrench, so other mods that accept wrenches accept it too."
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:wrench"
+  }
+ ]
+}

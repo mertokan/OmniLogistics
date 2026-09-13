@@ -1,0 +1,8 @@
+{
+ "parent": "omnilogistics:block/pipe_arm_end",
+ "render_type": "minecraft:translucent",
+ "textures": {
+  "pipe": "omnilogistics:block/pipe_fluid_basic_push",
+  "particle": "omnilogistics:block/pipe_fluid_basic"
+ }
+}

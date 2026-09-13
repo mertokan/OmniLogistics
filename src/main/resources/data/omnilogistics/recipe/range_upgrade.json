@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "GEG",
+  "EAE",
+  "GEG"
+ ],
+ "key": {
+  "G": {
+   "tag": "c:ingots/gold"
+  },
+  "E": {
+   "tag": "c:ender_pearls"
+  },
+  "A": {
+   "item": "minecraft:amethyst_shard"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:range_upgrade",
+  "count": 1
+ }
+}

@@ -1,0 +1,28 @@
+{
+ "display": {
+  "icon": {
+   "id": "omnilogistics:advanced_logistics_card"
+  },
+  "title": {
+   "translate": "advancement.omnilogistics.card_upgrade"
+  },
+  "description": {
+   "translate": "advancement.omnilogistics.card_upgrade.desc"
+  },
+  "background": "minecraft:textures/block/polished_deepslate.png",
+  "frame": "goal",
+  "show_toast": true,
+  "announce_to_chat": true,
+  "hidden": false
+ },
+ "criteria": {
+  "code": {
+   "trigger": "minecraft:impossible"
+  }
+ },
+ "requirements": [
+  [
+   "code"
+  ]
+ ]
+}

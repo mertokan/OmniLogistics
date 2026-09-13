@@ -1,0 +1,20 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "PPP",
+  "PXP",
+  "PPP"
+ ],
+ "key": {
+  "P": {
+   "item": "omnilogistics:basic_energy_cable"
+  },
+  "X": {
+   "tag": "c:ingots/gold"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:advanced_energy_cable",
+  "count": 8
+ }
+}

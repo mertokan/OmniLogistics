@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "DAD",
+  "ABA",
+  "DAD"
+ ],
+ "key": {
+  "D": {
+   "tag": "c:gems/diamond"
+  },
+  "A": {
+   "item": "minecraft:anvil"
+  },
+  "B": {
+   "item": "minecraft:enchanted_book"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:fusion_module",
+  "count": 1
+ }
+}

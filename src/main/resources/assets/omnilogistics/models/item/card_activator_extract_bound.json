@@ -1,0 +1,6 @@
+{
+ "parent": "minecraft:item/generated",
+ "textures": {
+  "layer0": "omnilogistics:item/card_activator_extract_bound"
+ }
+}

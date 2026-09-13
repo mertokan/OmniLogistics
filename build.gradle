@@ -1,0 +1,69 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.146'
+}
+
+group = 'com.mertokan.omnilogistics'
+version = '0.2.0'
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    version = '21.1.249' // MC 1.21.1; same build as the CurseForge "OmniLogi" test profile (JEI / Apotheosis need >= 21.1.238)
+
+    runs {
+        client {   // straight into run/saves/OmniTest (built with the showcase when missing); delete that folder to rebuild
+            client()
+            systemProperty 'omnilogistics.autoworld', 'true'
+        }
+        server { server(); programArgument '--nogui' }
+        clientSelfTest {
+            client()
+            systemProperty 'omnilogistics.selftest', 'true'
+            programArguments.addAll('--width', '1600', '--height', '900')
+        }
+        clientPrepare {   // builds the hand-testing world run/saves/OmniTest and quits; then play it with runClient
+            client()
+            systemProperty 'omnilogistics.prepare', 'true'
+        }
+        clientPress {   // builds the world, tours it and writes run/screenshots/omni_press_*.png for the project page
+            client()
+            systemProperty 'omnilogistics.prepare', 'true'
+            systemProperty 'omnilogistics.press', 'true'
+            programArguments.addAll('--width', '1920', '--height', '1080')
+        }
+        gameTestServer {
+            type = 'gameTestServer'
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'omnilogistics'
+        }
+    }
+    mods {
+        omnilogistics { sourceSet sourceSets.main }
+    }
+    unitTest {
+        enable()
+        testedMod = mods.omnilogistics
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://maven.blamejared.com' }   // JEI api (+ Placebo / Apotheosis if ever needed)
+}
+
+dependencies {
+    // ponytail: no Cloth Config (NeoForge ModConfigSpec covers it), no Curios (no equipment slots in scope)
+    compileOnly "mezz.jei:jei-1.21.1-neoforge-api:19.51.0.418"   // optional at runtime; plugin class only loads when JEI is present
+    compileOnly files("libs/Jade-1.21.1-NeoForge-15.10.6.jar")     // optional at runtime; @WailaPlugin class only loads when Jade is present
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test { useJUnitPlatform() }
+
+// the self-test always starts from a fresh flat world, otherwise the previous showcase row stays in front of the camera
+tasks.named('runClientSelfTest') { doFirst { delete 'run/saves/selftest', 'run/selftest.txt', 'run/screenshots' } }
+tasks.named('runClientPrepare') { doFirst { delete 'run/saves/OmniTest' } }
+tasks.named('runClientPress') { doFirst { delete 'run/saves/OmniTest' } }
+
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }

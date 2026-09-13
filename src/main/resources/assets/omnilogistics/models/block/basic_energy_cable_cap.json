@@ -1,0 +1,8 @@
+{
+ "parent": "omnilogistics:block/pipe_cap",
+ "render_type": "minecraft:translucent",
+ "textures": {
+  "pipe": "omnilogistics:block/pipe_energy_basic",
+  "particle": "omnilogistics:block/pipe_energy_basic"
+ }
+}

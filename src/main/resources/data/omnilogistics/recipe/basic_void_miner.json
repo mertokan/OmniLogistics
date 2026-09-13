@@ -1,0 +1,35 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "IEI",
+  "DOD",
+  "IRI"
+ ],
+ "key": {
+  "I": {
+   "tag": "c:ingots/iron"
+  },
+  "E": {
+   "tag": "c:ender_pearls"
+  },
+  "D": {
+   "tag": "c:gems/diamond"
+  },
+  "O": {
+   "item": "minecraft:obsidian"
+  },
+  "R": {
+   "tag": "c:storage_blocks/redstone"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:basic_void_miner",
+  "count": 1
+ },
+ "neoforge:conditions": [
+  {
+   "type": "omnilogistics:module",
+   "module": "mining"
+  }
+ ]
+}

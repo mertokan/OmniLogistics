@@ -1,0 +1,20 @@
+{
+ "name": "The Component Filter",
+ "icon": "minecraft:enchanted_book",
+ "category": "omnilogistics:blocks",
+ "sortnum": 0,
+ "pages": [
+  {
+   "type": "patchouli:text",
+   "text": "Every block and card in this mod shares one filter: a $(bold)reference item$() plus $(bold)flags$(). Click the ghost slot with an item to set the reference (it is not consumed); shift-click an item in your inventory does the same. Click the slot empty-handed to clear it."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "$(bold)Match Item$(): same item as the reference.$(br)$(bold)Match Comps$(): components must be identical.$(br)$(bold)Match Enchants$(): the item must carry every enchantment of the reference at that level or higher. Put an enchanted book in the slot and turn Match Item off to catch any gear with those enchantments."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "$(bold)Has Enchants$(): any enchanted item, no reference needed.$(br)$(bold)Mod Comps$(): items carrying components from other mods, e.g. Apotheosis affixes or gems. No reference needed.$(br)$(bold)Ignore Dmg$(): durability is ignored when comparing.$(br)$(bold)Blacklist$(): let through everything that does NOT match."
+  }
+ ]
+}

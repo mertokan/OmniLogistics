@@ -1,0 +1,26 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "IGI",
+  "GCG",
+  "IRI"
+ ],
+ "key": {
+  "I": {
+   "tag": "c:ingots/iron"
+  },
+  "G": {
+   "tag": "c:glass_blocks"
+  },
+  "C": {
+   "item": "omnilogistics:logistics_card"
+  },
+  "R": {
+   "tag": "c:dusts/redstone"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:machine_monitor",
+  "count": 1
+ }
+}

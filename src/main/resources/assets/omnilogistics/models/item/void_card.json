@@ -1,0 +1,14 @@
+{
+ "parent": "minecraft:item/generated",
+ "textures": {
+  "layer0": "omnilogistics:item/card_void_extract"
+ },
+ "overrides": [
+  {
+   "predicate": {
+    "omnilogistics:bound": 1
+   },
+   "model": "omnilogistics:item/card_void_extract_bound"
+  }
+ ]
+}

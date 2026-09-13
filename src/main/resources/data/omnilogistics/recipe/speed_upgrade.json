@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "RGR",
+  "GSG",
+  "RGR"
+ ],
+ "key": {
+  "R": {
+   "tag": "c:dusts/redstone"
+  },
+  "G": {
+   "tag": "c:ingots/gold"
+  },
+  "S": {
+   "item": "minecraft:sugar"
+  }
+ },
+ "result": {
+  "id": "omnilogistics:speed_upgrade",
+  "count": 1
+ }
+}

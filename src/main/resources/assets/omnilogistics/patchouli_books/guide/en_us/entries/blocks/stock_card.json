@@ -1,0 +1,20 @@
+{
+ "name": "Stock Keeper",
+ "icon": "omnilogistics:stock_card",
+ "category": "omnilogistics:blocks",
+ "sortnum": 11,
+ "pages": [
+  {
+   "type": "patchouli:text",
+   "text": "$(bold)Stock Keeper Card$(): keeps the bound inventory topped up to one stack of whatever the router is carrying, and stops when it is full. Craft it with Bandwidth Upgrades to keep 2 / 4 / 8 stacks."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "It never fetches anything by itself - pair it with an item card in $(bold)EXTRACT$() mode on a chest. That one fills the router buffer, this one keeps the machine stocked."
+  },
+  {
+   "type": "patchouli:crafting",
+   "recipe": "omnilogistics:stock_card"
+  }
+ ]
+}
