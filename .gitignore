@@ -4,7 +4,9 @@ run/
 runs/
 .idea/
 *.iml
-libs/                 # third-party jars used for local testing, not ours to redistribute
+# third-party jars used for local testing: not ours to redistribute
+libs/
 tools/__pycache__/
 *.log
-ports/                # version ports live in their own git worktrees (branch mc/<version>)
+# version ports live in their own git worktrees (branch mc/<version>)
+ports/

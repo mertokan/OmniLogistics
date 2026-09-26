@@ -5,6 +5,7 @@ plugins {
 
 group = 'com.mertokan.omnilogistics'
 version = '0.2.0'
+base { archivesName = 'omnilogistics-26.1.2' }   // the jar says which Minecraft it is for
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
