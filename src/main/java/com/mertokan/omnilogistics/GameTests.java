@@ -41,7 +41,8 @@ public final class GameTests {
         int timeoutTicks() default 100;
     }
 
-    private static final List<Class<?>> SUITES = List.of(PipeGameTests.class, MachineGameTests.class, MinerGameTests.class);
+    private static final List<Class<?>> SUITES = List.of(PipeGameTests.class, MachineGameTests.class, MinerGameTests.class,
+        NbtRuleGameTests.class, EngineGameTests.class);
     private static final DeferredRegister<Consumer<GameTestHelper>> FUNCTIONS =
         DeferredRegister.create(Registries.TEST_FUNCTION, OmniLogistics.MODID);
     private record Entry(String name, int ticks) {}
