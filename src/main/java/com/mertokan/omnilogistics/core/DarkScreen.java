@@ -69,7 +69,7 @@ public abstract class DarkScreen<M extends AbstractContainerMenu> extends Abstra
     @Override
     public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
         int sheet = Math.max(imageWidth, imageHeight) <= 256 ? 256 : 512;   // tall panels (the 16 / 64 filter) come off the bigger sheet
-        g.blit(tex, leftPos, topPos, 0, 0, imageWidth, imageHeight, sheet, sheet);
+        g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, tex, leftPos, topPos, 0f, 0f, imageWidth, imageHeight, sheet, sheet);
     }
 
     @Override
