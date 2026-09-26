@@ -10,15 +10,13 @@ import com.mertokan.omnilogistics.pipe.PipeScreen;
 import com.mertokan.omnilogistics.router.CardKind;
 import com.mertokan.omnilogistics.router.RouterScreen;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
@@ -45,18 +43,32 @@ public final class ClientSetup {
         e.registerBlockEntityRenderer(OmniLogistics.MONITOR_BE.get(), com.mertokan.omnilogistics.monitor.MonitorRenderer::new);
     }
 
-    /** Card models switch on mode (extract/insert) and bound state; see models/item/*_card.json. */
+    /** Card models switch on mode (extract/insert) and on being bound: two conditions the item model definitions in
+     *  assets/omnilogistics/items/ read (see tools/gen_resources.py). Item "overrides" went away in 1.21.4. */
+    public record CardInsert() implements net.minecraft.client.renderer.item.properties.conditional.ConditionalItemModelProperty {
+        public static final com.mojang.serialization.MapCodec<CardInsert> CODEC = com.mojang.serialization.MapCodec.unit(new CardInsert());
+        @Override public boolean get(net.minecraft.world.item.ItemStack stack, net.minecraft.client.multiplayer.@org.jetbrains.annotations.Nullable ClientLevel level,
+                                     net.minecraft.world.entity.@org.jetbrains.annotations.Nullable LivingEntity owner, int seed,
+                                     net.minecraft.world.item.ItemDisplayContext ctx) {
+            return stack.getOrDefault(OmniLogistics.CARD_MODE.get(), 0) == 1;
+        }
+        @Override public com.mojang.serialization.MapCodec<CardInsert> type() { return CODEC; }
+    }
+
+    public record CardBound() implements net.minecraft.client.renderer.item.properties.conditional.ConditionalItemModelProperty {
+        public static final com.mojang.serialization.MapCodec<CardBound> CODEC = com.mojang.serialization.MapCodec.unit(new CardBound());
+        @Override public boolean get(net.minecraft.world.item.ItemStack stack, net.minecraft.client.multiplayer.@org.jetbrains.annotations.Nullable ClientLevel level,
+                                     net.minecraft.world.entity.@org.jetbrains.annotations.Nullable LivingEntity owner, int seed,
+                                     net.minecraft.world.item.ItemDisplayContext ctx) {
+            return stack.has(OmniLogistics.CARD_TARGET.get());
+        }
+        @Override public com.mojang.serialization.MapCodec<CardBound> type() { return CODEC; }
+    }
+
     @SubscribeEvent
-    static void setup(FMLClientSetupEvent e) {
-        e.enqueueWork(() -> {
-            for (CardKind kind : CardKind.values()) {
-                var card = OmniLogistics.CARDS.get(kind).get();
-                ItemProperties.register(card, ResourceLocation.fromNamespaceAndPath(OmniLogistics.MODID, "mode"),
-                    (stack, level, entity, seed) -> stack.getOrDefault(OmniLogistics.CARD_MODE.get(), 0));
-                ItemProperties.register(card, ResourceLocation.fromNamespaceAndPath(OmniLogistics.MODID, "bound"),
-                    (stack, level, entity, seed) -> stack.has(OmniLogistics.CARD_TARGET.get()) ? 1 : 0);
-            }
-        });
+    static void itemConditions(net.neoforged.neoforge.client.event.RegisterConditionalItemModelPropertyEvent e) {
+        e.register(Identifier.fromNamespaceAndPath(OmniLogistics.MODID, "insert"), CardInsert.CODEC);
+        e.register(Identifier.fromNamespaceAndPath(OmniLogistics.MODID, "bound"), CardBound.CODEC);
     }
 
     /**
@@ -97,7 +109,7 @@ public final class ClientSetup {
     /** Every block/item of the mod gets its "desc.omnilogistics.<id>" lang text under the name. */
     @SubscribeEvent
     static void tooltip(ItemTooltipEvent e) {
-        ResourceLocation id = BuiltInRegistries.ITEM.getKey(e.getItemStack().getItem());
+        Identifier id = BuiltInRegistries.ITEM.getKey(e.getItemStack().getItem());
         if (!OmniLogistics.MODID.equals(id.getNamespace())) return;
         String key = "desc.omnilogistics." + id.getPath();
         if (!I18n.exists(key)) return;

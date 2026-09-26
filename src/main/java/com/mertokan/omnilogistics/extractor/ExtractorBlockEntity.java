@@ -211,32 +211,32 @@ public class ExtractorBlockEntity extends TickingBlockEntity implements MenuHost
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.saveAdditional(tag, regs);
-        tag.put("Items", items.serializeNBT(regs));
-        tag.put("Energy", energy.serializeNBT(regs));
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
+        super.saveAdditional(tag);
+        items.serialize(tag.child("Items"));
+        energy.serialize(tag.child("Energy"));
         tag.putIntArray("Progress", progress);
-        byte[] done = new byte[LANES];
-        for (int i = 0; i < LANES; i++) done[i] = (byte) (laneDone[i] ? 1 : 0);
-        tag.putByteArray("Done", done);
+        int[] done = new int[LANES];
+        for (int i = 0; i < LANES; i++) done[i] = laneDone[i] ? 1 : 0;
+        tag.putIntArray("Done", done);
         tag.putBoolean("Fuse", fuse);
         tag.putInt("Interval", interval);
         tag.putInt("BookCredit", bookCredit);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.loadAdditional(tag, regs);
-        if (tag.contains("Items")) items.deserializeNBT(regs, tag.getCompound("Items"));
-        if (tag.contains("Energy")) energy.deserializeNBT(regs, tag.get("Energy"));
-        int[] p = tag.getIntArray("Progress");
-        byte[] d = tag.getByteArray("Done");
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
+        super.loadAdditional(tag);
+        items.deserialize(tag.childOrEmpty("Items"));
+        energy.deserialize(tag.childOrEmpty("Energy"));
+        int[] p = tag.getIntArray("Progress").orElse(new int[0]);
+        int[] d = tag.getIntArray("Done").orElse(new int[0]);
         for (int i = 0; i < LANES; i++) {
             progress[i] = p.length == LANES ? p[i] : 0;
             laneDone[i] = d.length == LANES && d[i] != 0;
         }
-        fuse = tag.getBoolean("Fuse");
-        interval = tag.getInt("Interval");   // old worlds carry "Speed" instead: dropped, upgrades no longer clock the machine
-        bookCredit = tag.getInt("BookCredit");
+        fuse = tag.getBooleanOr("Fuse", false);
+        interval = tag.getIntOr("Interval", 0);   // old worlds carry "Speed" instead: dropped, upgrades no longer clock the machine
+        bookCredit = tag.getIntOr("BookCredit", 0);
     }
 }

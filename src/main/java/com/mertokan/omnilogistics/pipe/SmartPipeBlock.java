@@ -110,7 +110,7 @@ public class SmartPipeBlock extends MachineBlock {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighbor, BlockPos neighborPos, boolean moving) {
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighbor, @org.jetbrains.annotations.Nullable net.minecraft.world.level.redstone.Orientation orientation, boolean moving) {
         update(level, pos);
     }
 

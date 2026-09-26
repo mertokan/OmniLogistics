@@ -59,7 +59,7 @@ public class DistributorBlockEntity extends TickingBlockEntity implements MenuHo
     public final ItemStackHandler upgrades = new ItemStackHandler(1) {
         @Override public boolean isItemValid(int i, ItemStack s) { return s.is(OmniLogistics.PARALLEL_UPGRADE.get()); }
         @Override public int getSlotLimit(int i) { return 2; }
-        @Override protected void onContentsChanged(int i) { if (level != null && !level.isClientSide) sync(); else setChanged(); }
+        @Override protected void onContentsChanged(int i) { if (level != null && !level.isClientSide()) sync(); else setChanged(); }
     };
     /** SPLIT: one ingredient per lane, each to its own machine. CLUSTER: the whole batch to one machine, next batch to the next. */
     private boolean cluster;
@@ -72,7 +72,7 @@ public class DistributorBlockEntity extends TickingBlockEntity implements MenuHo
             ItemStack c = getStackInSlot(i);
             // a fresh card defaults to EXTRACT; in a lane the useful default is INSERT (deliver to the machine)
             if (!c.isEmpty() && !c.has(OmniLogistics.CARD_MODE.get())) c.set(OmniLogistics.CARD_MODE.get(), LogisticsCardItem.INSERT);
-            if (level != null && !level.isClientSide) sync(); else setChanged();
+            if (level != null && !level.isClientSide()) sync(); else setChanged();
         }
     };
     /** Lane i buffer. Unfiltered on purpose: the filter lives on {@link #view}, so a return lane can pull into its own slot. */
@@ -296,7 +296,7 @@ public class DistributorBlockEntity extends TickingBlockEntity implements MenuHo
     }
 
     private void add(ServerLevel sl, BlockPos machine, @Nullable Direction side, List<IItemHandler> out) {
-        IItemHandler h = sl.getCapability(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.BLOCK, machine, side);
+        IItemHandler h = com.mertokan.omnilogistics.core.Caps.items(sl, machine, side);
         if (h != null && !out.contains(h)) out.add(h);
     }
 
@@ -452,24 +452,24 @@ public class DistributorBlockEntity extends TickingBlockEntity implements MenuHo
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.saveAdditional(tag, regs);
-        tag.put("Cards", cards.serializeNBT(regs));
-        tag.put("Lanes", lanes.serializeNBT(regs));
-        tag.put("Upgrades", upgrades.serializeNBT(regs));
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
+        super.saveAdditional(tag);
+        cards.serialize(tag.child("Cards"));
+        lanes.serialize(tag.child("Lanes"));
+        upgrades.serialize(tag.child("Upgrades"));
         tag.putBoolean("Cluster", cluster);
         if (home != null) tag.putByte("Home", (byte) home.ordinal());
         if (fedFrom != null) tag.putByte("Fed", (byte) fedFrom.ordinal());
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.loadAdditional(tag, regs);
-        if (tag.contains("Cards")) { cards.deserializeNBT(regs, tag.getCompound("Cards")); grow(cards); }
-        if (tag.contains("Lanes")) { lanes.deserializeNBT(regs, tag.getCompound("Lanes")); grow(lanes); }
-        if (tag.contains("Upgrades")) upgrades.deserializeNBT(regs, tag.getCompound("Upgrades"));
-        cluster = tag.getBoolean("Cluster");
-        fedFrom = tag.contains("Fed") ? Direction.values()[tag.getByte("Fed")] : null;
-        home = tag.contains("Home") ? Direction.values()[Math.floorMod(tag.getByte("Home"), 6)] : null;
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
+        super.loadAdditional(tag);
+        { cards.deserialize(tag.childOrEmpty("Cards")); grow(cards); }
+        { lanes.deserialize(tag.childOrEmpty("Lanes")); grow(lanes); }
+        upgrades.deserialize(tag.childOrEmpty("Upgrades"));
+        cluster = tag.getBooleanOr("Cluster", false);
+        fedFrom = tag.getInt("Fed").map(i -> Direction.values()[Math.floorMod(i, 6)]).orElse(null);
+        home = tag.getInt("Home").map(i -> Direction.values()[Math.floorMod(i, 6)]).orElse(null);
     }
 }

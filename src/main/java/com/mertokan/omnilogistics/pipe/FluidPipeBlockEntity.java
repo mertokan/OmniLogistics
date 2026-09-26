@@ -1,5 +1,6 @@
 package com.mertokan.omnilogistics.pipe;
 
+import com.mertokan.omnilogistics.core.Caps;
 import com.mertokan.omnilogistics.OmniLogistics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -19,7 +20,7 @@ public class FluidPipeBlockEntity extends ConduitBlockEntity implements com.mert
     public final net.neoforged.neoforge.items.ItemStackHandler cards = new net.neoforged.neoforge.items.ItemStackHandler(1) {
         @Override public boolean isItemValid(int slot, net.minecraft.world.item.ItemStack s) { return com.mertokan.omnilogistics.router.LogisticsCardItem.isFluidCard(s); }
         @Override public int getSlotLimit(int slot) { return 1; }
-        @Override protected void onContentsChanged(int slot) { if (level != null && !level.isClientSide) sync(); else setChanged(); }
+        @Override protected void onContentsChanged(int slot) { if (level != null && !level.isClientSide()) sync(); else setChanged(); }
     };
     private final int rate;
     private final FluidTank buffer;
@@ -80,7 +81,7 @@ public class FluidPipeBlockEntity extends ConduitBlockEntity implements com.mert
     @Override protected boolean bufferEmptyOrPartial() { return buffer.getSpace() > 0; }
 
     private @Nullable IFluidHandler cap(Direction d) {
-        return level.getCapability(Capabilities.FluidHandler.BLOCK, worldPosition.relative(d), d.getOpposite());
+        return Caps.fluids(level, worldPosition.relative(d), d.getOpposite());
     }
 
     @Override
@@ -101,16 +102,16 @@ public class FluidPipeBlockEntity extends ConduitBlockEntity implements com.mert
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.saveAdditional(tag, regs);
-        tag.put("Fluid", buffer.writeToNBT(regs, new CompoundTag()));
-        tag.put("Card", cards.serializeNBT(regs));
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
+        super.saveAdditional(tag);
+        buffer.serialize(tag.child("Fluid"));
+        cards.serialize(tag.child("Card"));
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.loadAdditional(tag, regs);
-        if (tag.contains("Fluid")) buffer.readFromNBT(regs, tag.getCompound("Fluid"));
-        if (tag.contains("Card")) cards.deserializeNBT(regs, tag.getCompound("Card"));
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
+        super.loadAdditional(tag);
+        buffer.deserialize(tag.childOrEmpty("Fluid"));
+        cards.deserialize(tag.childOrEmpty("Card"));
     }
 }

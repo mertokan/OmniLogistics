@@ -5,7 +5,7 @@ import com.mertokan.omnilogistics.core.DarkScreen;
 import com.mertokan.omnilogistics.core.ToggleButton;
 import com.mertokan.omnilogistics.router.LogisticsCardItem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -37,25 +37,25 @@ public class DistributorScreen extends DarkScreen<DistributorMenu> {
         ghost = new ItemStack(OmniLogistics.CARD.get());
         ghostUpgrade = new ItemStack(OmniLogistics.PARALLEL_UPGRADE.get());
         mode = addRenderableWidget(new ToggleButton(leftPos + MODE_X, topPos + MODE_Y, MODE_W, 16,
-            () -> PacketDistributor.sendToServer(new DistributorModePayload(menu.pos, 0))));
+            () -> net.neoforged.neoforge.client.network.ClientPacketDistributor.sendToServer(new DistributorModePayload(menu.pos, 0))));
         mode.setTooltip(Tooltip.create(Component.translatable("tooltip.omnilogistics.distributor_mode")));
         bind = addRenderableWidget(new ToggleButton(leftPos + BIND_X, topPos + MODE_Y, BIND_W, 16,
-            () -> PacketDistributor.sendToServer(new DistributorModePayload(menu.pos, 1))));
+            () -> net.neoforged.neoforge.client.network.ClientPacketDistributor.sendToServer(new DistributorModePayload(menu.pos, 1))));
         bind.setMessage(Component.translatable("gui.omnilogistics.distributor_bind"));
         bind.setTooltip(Tooltip.create(Component.translatable("tooltip.omnilogistics.distributor_bind", DistributorBlockEntity.BIND_RADIUS)));
     }
 
     @Override
-    public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
         mode.on = menu.cluster();
         mode.onColor = ON_CLUSTER;
         mode.setMessage(Component.translatable(menu.cluster() ? "gui.omnilogistics.distributor_cluster" : "gui.omnilogistics.distributor_split"));
-        super.render(g, mouseX, mouseY, partialTick);
+        super.extractRenderState(g, mouseX, mouseY, partialTick);
     }
 
     @Override
-    protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
-        super.renderBg(g, partialTick, mouseX, mouseY);
+    public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(g, mouseX, mouseY, partialTick);
         for (int i = 0; i < LANES; i++) {
             int x = leftPos + laneX(i), y = topPos + laneY(i);
             if (i >= menu.activeLanes()) {   // locked until the next Parallel Upgrade
@@ -64,24 +64,22 @@ public class DistributorScreen extends DarkScreen<DistributorMenu> {
             }
             if (!menu.getSlot(i).hasItem()) ghost(g, ghost, x, y);
             ItemStack icon = targetIcon(menu.getSlot(i).getItem());
-            if (!icon.isEmpty()) g.renderFakeItem(icon, x + (ICON_X - CARD_X), y);
+            if (!icon.isEmpty()) g.fakeItem(icon, x + (ICON_X - CARD_X), y);
             int s = Math.max(0, Math.min(PIP.length - 1, menu.status(i)));
             g.fill(x + (PIP_X - CARD_X), y + 5, x + (PIP_X - CARD_X) + 6, y + 11, PIP[s]);
         }
         if (!menu.getSlot(UPGRADE_SLOT).hasItem()) ghost(g, ghostUpgrade, leftPos + UPG_X, topPos + UPG_Y);
     }
 
-    private static void ghost(GuiGraphics g, ItemStack s, int x, int y) {
-        g.renderFakeItem(s, x, y);
-        g.pose().pushPose();
-        g.pose().translate(0, 0, 300);
+    private static void ghost(GuiGraphicsExtractor g, ItemStack s, int x, int y) {
+        g.fakeItem(s, x, y);
+        g.nextStratum();
         g.fill(x, y, x + 16, y + 16, 0xA0101317);
-        g.pose().popPose();
     }
 
     @Override
-    protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
-        super.renderLabels(g, mouseX, mouseY);
+    protected void extractLabels(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+        super.extractLabels(g, mouseX, mouseY);
         int mx = mouseX - leftPos, my = mouseY - topPos;
         for (int i = 0; i < LANES; i++) {
             int x = laneX(i), y = laneY(i);
@@ -94,7 +92,7 @@ public class DistributorScreen extends DarkScreen<DistributorMenu> {
                 if (LogisticsCardItem.isFilterCard(card)) tip.add(Component.literal(target(card)));
                 tip.add(Component.translatable("tooltip.omnilogistics.distributor_status." + menu.status(i)));
             }
-            g.renderComponentTooltip(font, tip, mx, my);
+            g.setComponentTooltipForNextFrame(font, tip, mx, my);
             return;
         }
     }

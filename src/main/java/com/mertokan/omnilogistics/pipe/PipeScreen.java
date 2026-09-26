@@ -4,7 +4,7 @@ import com.mertokan.omnilogistics.OmniLogistics;
 import com.mertokan.omnilogistics.core.DarkScreen;
 import com.mertokan.omnilogistics.core.ToggleButton;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -52,7 +52,7 @@ public class PipeScreen extends DarkScreen<PipeMenu> {
     }
 
     private void cycle(int i) {
-        PacketDistributor.sendToServer(new PipeConfigPayload(menu.pos, i));
+        net.neoforged.neoforge.client.network.ClientPacketDistributor.sendToServer(new PipeConfigPayload(menu.pos, i));
     }
 
     private BlockState neighbour(Direction d) {
@@ -61,7 +61,7 @@ public class PipeScreen extends DarkScreen<PipeMenu> {
     }
 
     @Override
-    public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
         byte[] c = menu.config();
         for (int i = 0; i < 6; i++) {
             int m = c[ORDER[i].ordinal()];
@@ -72,40 +72,38 @@ public class PipeScreen extends DarkScreen<PipeMenu> {
         rs.on = c[RS] != 0;
         rs.onColor = ON_RS;
         rs.setMessage(Component.translatable("gui.omnilogistics.redstone." + RS_KEY[c[RS]]));
-        super.render(g, mouseX, mouseY, partialTick);
+        super.extractRenderState(g, mouseX, mouseY, partialTick);
     }
 
     @Override
-    protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
-        super.renderBg(g, partialTick, mouseX, mouseY);
+    public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(g, mouseX, mouseY, partialTick);
         for (int i = 0; i < 6; i++) {
             int y = topPos + ROW_Y + i * ROW_H;
             if (i < 5) g.fill(leftPos + 8, y + ROW_H - 2, leftPos + 168, y + ROW_H - 1, ROW_LINE);
             BlockState n = neighbour(ORDER[i]);
             if (n == null || n.isAir()) continue;
             ItemStack icon = new ItemStack(n.getBlock());
-            if (!icon.isEmpty()) g.renderItem(icon, leftPos + ICON_X, y);
+            if (!icon.isEmpty()) g.item(icon, leftPos + ICON_X, y);
         }
         int x = leftPos + BUF_X, y = topPos + PipeMenu.SLOT_Y;
         if (menu.hasCard) {
             slotFrame(g, leftPos + PipeMenu.SLOT_X, y);
             if (!menu.getSlot(PipeMenu.CARD_SLOT).hasItem()) {   // ghost card: what goes here
-                g.renderFakeItem(ghost, leftPos + PipeMenu.SLOT_X, y);
-                g.pose().pushPose();
-                g.pose().translate(0, 0, 300);
+                g.fakeItem(ghost, leftPos + PipeMenu.SLOT_X, y);
+                g.nextStratum();
                 g.fill(leftPos + PipeMenu.SLOT_X, y, leftPos + PipeMenu.SLOT_X + 16, y + 16, 0xA0101317);
-                g.pose().popPose();
             }
         } else {
             x = leftPos + 8;
         }
         if (menu.conduit() instanceof PipeBlockEntity p && !p.bufferStack().isEmpty()) {   // the item in transit, with its count
-            g.renderItem(p.bufferStack(), x, y);
-            g.renderItemDecorations(font, p.bufferStack(), x, y);
+            g.item(p.bufferStack(), x, y);
+            g.itemDecorations(font, p.bufferStack(), x, y);
         }
     }
 
-    private static void slotFrame(GuiGraphics g, int x, int y) {   // inset slot, same look as the generated sheets
+    private static void slotFrame(GuiGraphicsExtractor g, int x, int y) {   // inset slot, same look as the generated sheets
         g.fill(x - 1, y - 1, x + 17, y + 17, 0xFF0E1115);
         g.fill(x, y, x + 16, y + 16, 0xFF0A0C0F);
         g.fill(x, y, x + 16, y + 1, 0xFF050709);
@@ -115,26 +113,26 @@ public class PipeScreen extends DarkScreen<PipeMenu> {
     }
 
     @Override
-    protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
-        super.renderLabels(g, mouseX, mouseY);
+    protected void extractLabels(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+        super.extractLabels(g, mouseX, mouseY);
         for (int i = 0; i < 6; i++) {
             int y = ROW_Y + i * ROW_H;
-            g.drawString(font, Component.translatable("gui.omnilogistics.side." + ORDER[i].getName()), NAME_X, y, TEXT, false);
+            g.text(font, Component.translatable("gui.omnilogistics.side." + ORDER[i].getName()), NAME_X, y, TEXT, false);
             BlockState n = neighbour(ORDER[i]);
             Component name = n == null || n.isAir() ? Component.translatable("gui.omnilogistics.side_empty") : n.getBlock().getName();
-            g.drawString(font, font.plainSubstrByWidth(name.getString(), NAME_W), NAME_X, y + 9, MUTED, false);
+            g.text(font, font.plainSubstrByWidth(name.getString(), NAME_W), NAME_X, y + 9, MUTED, false);
         }
         ConduitBlockEntity c = menu.conduit();
         int bx = menu.hasCard ? BUF_X : 8;
         String info = c instanceof FluidPipeBlockEntity f ? compact(f.fluid().getAmount()) + " mB"
             : c instanceof EnergyCableBlockEntity e ? compact(e.stored()) + " FE" : null;
-        if (info != null) g.drawString(font, info, bx, PipeMenu.SLOT_Y + 4, MUTED, false);
+        if (info != null) g.text(font, info, bx, PipeMenu.SLOT_Y + 4, MUTED, false);
         int mx = mouseX - leftPos, my = mouseY - topPos;
         boolean row = my >= PipeMenu.SLOT_Y && my < PipeMenu.SLOT_Y + 16;
         if (row && menu.hasCard && mx >= PipeMenu.SLOT_X && mx < PipeMenu.SLOT_X + 16 && !menu.getSlot(PipeMenu.CARD_SLOT).hasItem())
-            g.renderTooltip(font, font.split(Component.translatable("tooltip.omnilogistics.filter_card"), 200), mx, my);
+            g.setTooltipForNextFrame(font, font.split(Component.translatable("tooltip.omnilogistics.filter_card"), 200), mx, my);
         else if (row && c != null && mx >= bx && mx < bx + BUF_W)
-            g.renderTooltip(font, c.bufferInfo(), mx, my);
+            g.setTooltipForNextFrame(font, c.bufferInfo(), mx, my);
     }
 
     private static String compact(int n) {

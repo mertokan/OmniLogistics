@@ -2,7 +2,7 @@ package com.mertokan.omnilogistics.extractor;
 
 import com.mertokan.omnilogistics.core.DarkScreen;
 import com.mertokan.omnilogistics.core.ToggleButton;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -24,23 +24,23 @@ public class ExtractorScreen extends DarkScreen<ExtractorMenu> {
     protected void init() {
         super.init();
         modeButton = addRenderableWidget(new ToggleButton(leftPos + 98, topPos + 66, 52, 16,
-            () -> PacketDistributor.sendToServer(new ExtractorModePayload(menu.pos))));
+            () -> net.neoforged.neoforge.client.network.ClientPacketDistributor.sendToServer(new ExtractorModePayload(menu.pos))));
         modeButton.setTooltip(Tooltip.create(Component.translatable("tooltip.omnilogistics.extractor_mode")));
         addIntervalBox(TICK_X + 3, TICK_Y + 2, 22, menu.pos, menu::time);
     }
 
     @Override
-    public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
         modeButton.on = menu.fuseMode();
         modeButton.onColor = 0xFF9C5A10;
         modeButton.setMessage(Component.translatable(menu.fuseMode() ? "gui.omnilogistics.mode_fuse" : "gui.omnilogistics.mode_extract"));
         modeButton.active = menu.fusionModule();
-        super.render(g, mouseX, mouseY, partialTick);
+        super.extractRenderState(g, mouseX, mouseY, partialTick);
     }
 
     @Override
-    protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
-        super.renderBg(g, partialTick, mouseX, mouseY);
+    public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(g, mouseX, mouseY, partialTick);
         int cap = menu.capacity();
         int e = (int) Math.min(BAR_H, (long) BAR_H * menu.energy() / cap);
         g.fill(leftPos + BAR_X, topPos + BAR_Y + BAR_H - e, leftPos + BAR_X + BAR_W, topPos + BAR_Y + BAR_H, 0xFF3FD3FF);
@@ -56,18 +56,18 @@ public class ExtractorScreen extends DarkScreen<ExtractorMenu> {
     }
 
     @Override
-    protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
-        super.renderLabels(g, mouseX, mouseY);
-        g.drawString(font, Component.translatable("gui.omnilogistics.upgrades"), 62, 86, MUTED, false);
-        g.drawString(font, Component.translatable("gui.omnilogistics.ticks_short"), TICK_X + 27, TICK_Y + 2, MUTED, false);
-        g.drawString(font, Component.translatable(menu.fuseMode() ? "gui.omnilogistics.donor" : "gui.omnilogistics.books"), 56, 31, MUTED, false);
+    protected void extractLabels(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+        super.extractLabels(g, mouseX, mouseY);
+        g.text(font, Component.translatable("gui.omnilogistics.upgrades"), 62, 86, MUTED, false);
+        g.text(font, Component.translatable("gui.omnilogistics.ticks_short"), TICK_X + 27, TICK_Y + 2, MUTED, false);
+        g.text(font, Component.translatable(menu.fuseMode() ? "gui.omnilogistics.donor" : "gui.omnilogistics.books"), 56, 31, MUTED, false);
         int mx = mouseX - leftPos, my = mouseY - topPos;
         if (mx >= BAR_X && mx < BAR_X + BAR_W && my >= BAR_Y && my < BAR_Y + BAR_H)
-            g.renderTooltip(font, Component.translatable("gui.omnilogistics.energy", menu.energy(), menu.capacity(), menu.cost()), mx, my);
+            g.setTooltipForNextFrame(font, Component.translatable("gui.omnilogistics.energy", menu.energy(), menu.capacity(), menu.cost()), mx, my);
         for (int lane = menu.lanes(); lane < LANES; lane++) {
             int[] p = ExtractorMenu.POS[lane];
             if (mx >= p[0] && mx < p[0] + 16 && my >= p[1] && my < p[1] + 16)
-                g.renderTooltip(font, Component.translatable("gui.omnilogistics.lane_locked"), mx, my);
+                g.setTooltipForNextFrame(font, Component.translatable("gui.omnilogistics.lane_locked"), mx, my);
         }
     }
 }

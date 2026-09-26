@@ -27,7 +27,7 @@ public class PipeBlockEntity extends ConduitBlockEntity implements CardSlots {
     public final ItemStackHandler cards = new ItemStackHandler(1) {
         @Override public boolean isItemValid(int slot, ItemStack stack) { return LogisticsCardItem.isFilterCard(stack); }
         @Override public int getSlotLimit(int slot) { return 1; }
-        @Override protected void onContentsChanged(int slot) { if (level != null && !level.isClientSide) sync(); else setChanged(); } // clients edit the card in place
+        @Override protected void onContentsChanged(int slot) { if (level != null && !level.isClientSide()) sync(); else setChanged(); } // clients edit the card in place
     };
     private final ItemStackHandler buffer = new ItemStackHandler(1) {
         @Override protected void onContentsChanged(int slot) { markDirty(); }
@@ -85,7 +85,7 @@ public class PipeBlockEntity extends ConduitBlockEntity implements CardSlots {
      *  the client drew the same stack twice at the seam. Energy / fluid keep the throttle. */
     @Override
     protected void markDirty() {
-        if (level != null && !level.isClientSide) sync(); else super.markDirty();
+        if (level != null && !level.isClientSide()) sync(); else super.markDirty();
     }
     public ItemStack bufferStack() { return buffer.getStackInSlot(0); }
 
@@ -141,10 +141,10 @@ public class PipeBlockEntity extends ConduitBlockEntity implements CardSlots {
     // ---- NBT --------------------------------------------------------------------------
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.saveAdditional(tag, regs);
-        tag.put("Buffer", buffer.serializeNBT(regs));
-        tag.put("Card", cards.serializeNBT(regs));
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
+        super.saveAdditional(tag);
+        buffer.serialize(tag.child("Buffer"));
+        cards.serialize(tag.child("Card"));
     }
 
     /** Clients need the exact server tick the stack entered. Deliberately NOT in saveAdditional: a timestamp coming back off
@@ -157,10 +157,10 @@ public class PipeBlockEntity extends ConduitBlockEntity implements CardSlots {
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.loadAdditional(tag, regs);
-        if (tag.contains("Buffer")) buffer.deserializeNBT(regs, tag.getCompound("Buffer"));
-        if (tag.contains("Card")) cards.deserializeNBT(regs, tag.getCompound("Card"));
-        if (tag.contains("Entered")) enteredAt = tag.getLong("Entered");   // update-tag only, so this only ever runs on the client
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
+        super.loadAdditional(tag);
+        buffer.deserialize(tag.childOrEmpty("Buffer"));
+        cards.deserialize(tag.childOrEmpty("Card"));
+        tag.getLong("Entered").ifPresent(v -> enteredAt = v);   // update-tag only, so this only ever runs on the client
     }
 }

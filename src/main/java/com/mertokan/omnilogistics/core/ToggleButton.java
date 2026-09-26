@@ -1,7 +1,7 @@
 package com.mertokan.omnilogistics.core;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
@@ -19,12 +19,12 @@ public class ToggleButton extends AbstractButton {
     }
 
     @Override
-    public void onPress() {
+    public void onPress(net.minecraft.client.input.InputWithModifiers input) {
         action.run();
     }
 
     @Override
-    protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    protected void extractContents(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
         boolean hover = isHoveredOrFocused();
         int fill = on ? (hover ? lighten(onColor, 30) : onColor) : (hover ? 0xFF3A414B : 0xFF2A2F37);
         int x = getX(), y = getY(), r = x + width, b = y + height;
@@ -35,7 +35,7 @@ public class ToggleButton extends AbstractButton {
         if (on) g.fill(x + 1, b, r - 1, b + 1, lighten(onColor, 60)); // accent underline
         var font = Minecraft.getInstance().font;
         String label = font.plainSubstrByWidth(getMessage().getString(), width - 4);
-        g.drawCenteredString(font, label, x + width / 2, y + (height - 8) / 2, on ? 0xFFFFFF : 0xE6EDF3);
+        g.centeredText(font, label, x + width / 2, y + (height - 8) / 2, on ? 0xFFFFFFFF : 0xFFE6EDF3);
     }
 
     private static int lighten(int argb, int d) {

@@ -1,7 +1,7 @@
 package com.mertokan.omnilogistics.core;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
@@ -45,12 +45,12 @@ public class IntervalBox extends EditBox {
     }
 
     @Override
-    public boolean keyPressed(int key, int scan, int mods) {
-        if (isFocused() && (key == InputConstants.KEY_RETURN || key == InputConstants.KEY_NUMPADENTER)) {
+    public boolean keyPressed(net.minecraft.client.input.KeyEvent e) {
+        if (isFocused() && (e.key() == InputConstants.KEY_RETURN || e.key() == InputConstants.KEY_NUMPADENTER)) {
             commit();
             return true;
         }
-        return super.keyPressed(key, scan, mods);
+        return super.keyPressed(e);
     }
 
     /** An empty or out-of-range field snaps back to something legal instead of dropping the edit. Nothing is sent unless the
@@ -61,6 +61,6 @@ public class IntervalBox extends EditBox {
         int v = IntervalHost.clamp(Integer.parseInt(getValue()));
         setValue(Integer.toString(v));
         muteUntil = Util.getMillis() + 500;
-        PacketDistributor.sendToServer(new IntervalPayload(pos, v));
+        net.neoforged.neoforge.client.network.ClientPacketDistributor.sendToServer(new IntervalPayload(pos, v));
     }
 }

@@ -5,7 +5,7 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -99,7 +99,7 @@ public final class ComponentPredicateEngine {
 
     public static boolean inAnyTag(ItemStack stack, List<String> tags) {
         for (String tag : tags) {
-            ResourceLocation id = ResourceLocation.tryParse(tag);
+            Identifier id = Identifier.tryParse(tag);
             if (id != null && stack.is(TagKey.create(Registries.ITEM, id))) return true;
         }
         return false;
@@ -108,8 +108,8 @@ public final class ComponentPredicateEngine {
     /** Each chosen component key: stack value must equal reference value (both absent counts as equal). */
     public static boolean selectedEqual(ItemStack stack, ItemStack ref, List<String> keys, int flags) {
         for (String key : keys) {
-            ResourceLocation id = ResourceLocation.tryParse(key);
-            DataComponentType<?> type = id == null ? null : BuiltInRegistries.DATA_COMPONENT_TYPE.get(id);
+            Identifier id = Identifier.tryParse(key);
+            DataComponentType<?> type = id == null ? null : BuiltInRegistries.DATA_COMPONENT_TYPE.getValue(id);
             if (type == null || (has(flags, IGNORE_DAMAGE) && type == DataComponents.DAMAGE)) continue;
             if (!Objects.equals(stack.get(type), ref.get(type))) return false;
         }
@@ -145,8 +145,8 @@ public final class ComponentPredicateEngine {
     }
 
     public static boolean isModded(DataComponentType<?> type) {
-        ResourceLocation key = BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(type);
-        return key != null && !ResourceLocation.DEFAULT_NAMESPACE.equals(key.getNamespace());
+        Identifier key = BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(type);
+        return key != null && !Identifier.DEFAULT_NAMESPACE.equals(key.getNamespace());
     }
 
     /** One row of the component picker: registry id, value preview, and whether the stack changed it from the item default. */
@@ -157,9 +157,9 @@ public final class ComponentPredicateEngine {
         var patch = stack.getComponentsPatch();
         List<ComponentInfo> out = new java.util.ArrayList<>();
         for (var typed : stack.getComponents()) {
-            ResourceLocation id = BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(typed.type());
+            Identifier id = BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(typed.type());
             if (id == null) continue;
-            boolean patched = patch.get(typed.type()) != null;
+            boolean patched = patch.getPatch(typed.type()) != null;
             out.add(new ComponentInfo(id.toString(), String.valueOf(typed.value()), patched));
         }
         out.sort((a, b) -> a.patched != b.patched ? (a.patched ? -1 : 1) : a.key.compareTo(b.key));
@@ -172,7 +172,7 @@ public final class ComponentPredicateEngine {
 
     /** Item tags the stack is in, sorted. What the GUI picker lists. */
     public static List<String> tagKeys(ItemStack stack) {
-        return stack.getTags().map(TagKey::location).map(ResourceLocation::toString).sorted().toList();
+        return stack.typeHolder().tags().map(TagKey::location).map(Identifier::toString).sorted().toList();
     }
 
     private static DataComponentPatch patch(ItemStack stack, int flags) {

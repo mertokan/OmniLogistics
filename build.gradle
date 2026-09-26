@@ -1,15 +1,15 @@
 plugins {
     id 'java-library'
-    id 'net.neoforged.moddev' version '2.0.146'
+    id 'net.neoforged.moddev' version '2.0.147'
 }
 
 group = 'com.mertokan.omnilogistics'
 version = '0.2.0'
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 neoForge {
-    version = '21.1.249' // MC 1.21.1; same build as the CurseForge "OmniLogi" test profile (JEI / Apotheosis need >= 21.1.238)
+    version = '26.1.2.109' // MC 26.1.2: the newest version AE2, Powah, JEI and Patchouli all ship for
 
     runs {
         client {   // straight into run/saves/OmniTest (built with the showcase when missing); delete that folder to rebuild
@@ -53,8 +53,7 @@ repositories {
 
 dependencies {
     // ponytail: no Cloth Config (NeoForge ModConfigSpec covers it), no Curios (no equipment slots in scope)
-    compileOnly "mezz.jei:jei-1.21.1-neoforge-api:19.51.0.418"   // optional at runtime; plugin class only loads when JEI is present
-    compileOnly files("libs/Jade-1.21.1-NeoForge-15.10.6.jar")     // optional at runtime; @WailaPlugin class only loads when Jade is present
+    compileOnly "mezz.jei:jei-26.1.2-neoforge-api:29.43.0.105"   // optional at runtime; plugin class only loads when JEI is present
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
@@ -66,4 +65,4 @@ tasks.named('runClientSelfTest') { doFirst { delete 'run/saves/selftest', 'run/s
 tasks.named('runClientPrepare') { doFirst { delete 'run/saves/OmniTest' } }
 tasks.named('runClientPress') { doFirst { delete 'run/saves/OmniTest' } }
 
-tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8'; options.compilerArgs += ['-Xmaxerrs', '3000'] }

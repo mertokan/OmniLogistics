@@ -1,5 +1,6 @@
 package com.mertokan.omnilogistics.pipe;
 
+import com.mertokan.omnilogistics.core.Caps;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -38,9 +39,9 @@ public enum PipeType implements StringRepresentable {
     /** Does the block at pos offer this type's capability on the given side? Drives the connection model. */
     public boolean hasCapability(Level level, BlockPos pos, Direction side) {
         return switch (this) {
-            case ITEM -> level.getCapability(Capabilities.ItemHandler.BLOCK, pos, side) != null;
-            case ENERGY -> level.getCapability(Capabilities.EnergyStorage.BLOCK, pos, side) != null;
-            case FLUID -> level.getCapability(Capabilities.FluidHandler.BLOCK, pos, side) != null;
+            case ITEM -> Caps.items(level, pos, side) != null;
+            case ENERGY -> Caps.energy(level, pos, side) != null;
+            case FLUID -> Caps.fluids(level, pos, side) != null;
         };
     }
 }

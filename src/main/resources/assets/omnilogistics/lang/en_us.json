@@ -288,5 +288,6 @@
   "tooltip.omnilogistics.nbt.any_index": "Click: this list position <-> any element of the list",
   "tooltip.omnilogistics.nbt.op": "Left click: next operator\nRight click: previous\n= and != compare numbers by value (5b, 5 and 5.0 are equal)\ncontains contains: text inside a text, an element of a list, a key of a compound",
   "tooltip.omnilogistics.card_nbt_all": "NBT rules (%s, all must hold):",
-  "tooltip.omnilogistics.card_nbt_any": "NBT rules (%s, any one holds):"
+  "tooltip.omnilogistics.card_nbt_any": "NBT rules (%s, any one holds):",
+  "key.category.omnilogistics.main": "OmniLogistics"
 }

@@ -1,5 +1,6 @@
 package com.mertokan.omnilogistics.debug;
 
+import com.mertokan.omnilogistics.core.Caps;
 import com.mertokan.omnilogistics.OmniLogistics;
 import com.mertokan.omnilogistics.api.ComponentPredicateEngine;
 import com.mertokan.omnilogistics.exposer.ExposerBlockEntity;
@@ -25,7 +26,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
@@ -268,7 +269,7 @@ public final class Showcase {
         }
         // Our FE into a SECOND, independent ME network, and the leg that needs zero clicks: a powered ME Chest's input slot
         // accepts anything, so our pipe fills its 4k cell on its own while the player watches.
-        if (BuiltInRegistries.BLOCK.containsKey(ResourceLocation.parse("ae2:energy_acceptor"))) {
+        if (BuiltInRegistries.BLOCK.containsKey(Identifier.parse("ae2:energy_acceptor"))) {
             if (!place(sl, new BlockPos(x - 1, y, a), "powah:energy_cell_creative")) {
                 set(sl, new BlockPos(x - 1, y, a), OmniLogistics.ROUTER.get());
                 fillEnergy(sl, new BlockPos(x - 1, y, a));
@@ -598,18 +599,18 @@ public final class Showcase {
             BlockPos[] stands = {new BlockPos(ax, y, az - 3), new BlockPos(ax + 3, y, az),
                 new BlockPos(ax, y, az + 3), new BlockPos(ax - 3, y, az)};
             out.add(check("AA empowerer exposes an item handler",
-                sl.getCapability(Capabilities.ItemHandler.BLOCK, new BlockPos(ax, y, az), null) != null));
-            IItemHandler st0 = sl.getCapability(Capabilities.ItemHandler.BLOCK, stands[0], null);
+                Caps.items(sl, new BlockPos(ax, y, az), null) != null));
+            IItemHandler st0 = Caps.items(sl, stands[0], null);
             out.add(check("AA display stand exposes an item handler", st0 != null));
             out.add(check("AA display stand takes FE",
-                sl.getCapability(Capabilities.EnergyStorage.BLOCK, stands[0], null) != null));
+                Caps.energy(sl, stands[0], null) != null));
             int filled = 0;
             for (BlockPos st : stands) {
-                IItemHandler h = sl.getCapability(Capabilities.ItemHandler.BLOCK, st, null);
+                IItemHandler h = Caps.items(sl, st, null);
                 if (h != null && !h.getStackInSlot(0).isEmpty()) filled++;
             }
             out.add(check("our lanes filled " + filled + "/4 display stands", filled == 4));
-            IItemHandler emp = sl.getCapability(Capabilities.ItemHandler.BLOCK, new BlockPos(ax, y, az), null);
+            IItemHandler emp = Caps.items(sl, new BlockPos(ax, y, az), null);
             out.add(check("base item reached the empowerer", emp != null && !emp.getStackInSlot(0).isEmpty()));
             Item product = item("actuallyadditions:empowered_restonia_crystal", 1).getItem();
             boolean inChest = has(sl, new BlockPos(ax + 2, y, az - 1), product);
@@ -629,7 +630,7 @@ public final class Showcase {
             new BlockPos(x - 12, y, r6s), AE2_INGREDIENT, AE2_PRODUCT);
         // the slots a machine never offered are not ours to fill: forcing a FACE is the feature, reaching behind the
         // face into an assembler pattern slot or a crafting output is the bug that made this check exist
-        IItemHandler asmInv = sl.getCapability(Capabilities.ItemHandler.BLOCK, new BlockPos(x - 11, y, r6), null);
+        IItemHandler asmInv = Caps.items(sl, new BlockPos(x - 11, y, r6), null);
         if (asmInv != null && asmInv.getSlots() >= 11) {
             ItemStack ing = item(AE2_INGREDIENT, 1);
             out.add(check("AE2 assembler pattern slot untouched",
@@ -683,13 +684,13 @@ public final class Showcase {
     private static void bayChecks(ServerLevel sl, List<String> out, String name, BlockPos machine, BlockPos dist,
                                   BlockPos chest, String ingredientId, String productId) {
         if (sl.getBlockEntity(machine) == null) return;                       // that mod is not installed: no lines at all
-        IItemHandler h = sl.getCapability(Capabilities.ItemHandler.BLOCK, machine, null);
+        IItemHandler h = Caps.items(sl, machine, null);
         out.add(check(name + " machine exposes an item handler", h != null));
         out.add(check(name + " cluster produced " + productId, has(sl, chest, item(productId, 1).getItem())));
         ItemStack probe = item(ingredientId, 1);
         StringBuilder faces = new StringBuilder();
         for (Direction d : Direction.values()) {
-            IItemHandler hs = sl.getCapability(Capabilities.ItemHandler.BLOCK, machine, d);
+            IItemHandler hs = Caps.items(sl, machine, d);
             faces.append(d.getName().charAt(0))
                 .append(hs == null ? "-" : net.neoforged.neoforge.items.ItemHandlerHelper.insertItem(hs, probe.copy(), true).isEmpty() ? "+" : "x")
                 .append(hs == null ? "" : "" + hs.getSlots()).append(' ');
@@ -706,7 +707,7 @@ public final class Showcase {
             String nbt = sl.getBlockEntity(machine).saveWithoutMetadata(sl.registryAccess()).toString();
             out.add("info " + name + " nbt " + nbt.substring(0, Math.min(700, nbt.length())));
         }
-        IEnergyStorage fe = sl.getCapability(Capabilities.EnergyStorage.BLOCK, machine, null);
+        IEnergyStorage fe = Caps.energy(sl, machine, null);
         out.add("info " + name + " fe=" + (fe == null ? "-" : fe.getEnergyStored() + "/" + fe.getMaxEnergyStored())
             + " faces[" + faces.toString().trim() + "] machine " + describe(sl, machine)
             + " | dist " + describe(sl, dist) + " | hopper " + describe(sl, dist.above())
@@ -718,7 +719,7 @@ public final class Showcase {
     }
 
     private static int countIn(ServerLevel sl, BlockPos pos) {
-        IItemHandler h = sl.getCapability(Capabilities.ItemHandler.BLOCK, pos, null);
+        IItemHandler h = Caps.items(sl, pos, null);
         if (h == null) return 0;
         int n = 0;
         for (int i = 0; i < h.getSlots(); i++) n += h.getStackInSlot(i).getCount();
@@ -727,7 +728,7 @@ public final class Showcase {
 
     /** What a container holds, folded per item so a full chest does not print twelve identical stacks. */
     private static String describe(ServerLevel sl, BlockPos pos) {
-        IItemHandler h = sl.getCapability(Capabilities.ItemHandler.BLOCK, pos, null);
+        IItemHandler h = Caps.items(sl, pos, null);
         if (h == null) return "-";
         java.util.Map<Item, Integer> total = new java.util.LinkedHashMap<>();
         for (int i = 0; i < h.getSlots(); i++) {
@@ -741,7 +742,7 @@ public final class Showcase {
     }
 
     private static boolean has(ServerLevel sl, BlockPos pos, Item item) {
-        IItemHandler h = sl.getCapability(Capabilities.ItemHandler.BLOCK, pos, null);
+        IItemHandler h = Caps.items(sl, pos, null);
         if (h == null) return false;
         for (int i = 0; i < h.getSlots(); i++) if (h.getStackInSlot(i).is(item)) return true;
         return false;
@@ -759,7 +760,7 @@ public final class Showcase {
 
     /** Block of another mod by id; false (nothing placed) when that mod is not installed. */
     private static boolean place(ServerLevel sl, BlockPos pos, String id) {
-        var block = BuiltInRegistries.BLOCK.getOptional(ResourceLocation.parse(id));
+        var block = BuiltInRegistries.BLOCK.getOptional(Identifier.parse(id));
         block.ifPresent(b -> {
             set(sl, pos, b);
             applyItemDefaults(sl, pos);
@@ -793,7 +794,7 @@ public final class Showcase {
     /** Foreign block by id with its "facing" property set; false (nothing placed) when that mod is not installed. */
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static boolean place(ServerLevel sl, BlockPos pos, String id, Direction facing) {
-        var block = BuiltInRegistries.BLOCK.getOptional(ResourceLocation.parse(id));
+        var block = BuiltInRegistries.BLOCK.getOptional(Identifier.parse(id));
         if (block.isEmpty()) return false;
         BlockState st = block.get().defaultBlockState();
         Property<?> p = block.get().getStateDefinition().getProperty("facing");   // AE2 uses the vanilla FACING, Mekanism its own
@@ -807,7 +808,7 @@ public final class Showcase {
      *  AEBaseInvBlockEntity). No AE2 dependency; a no-op when AE2 is absent. */
     private static void cell(ServerLevel sl, BlockPos pos, @Nullable Direction side, int slot, String cellId) {
         ItemStack c = item(cellId, 1);
-        IItemHandler h = sl.getCapability(Capabilities.ItemHandler.BLOCK, pos, side);
+        IItemHandler h = Caps.items(sl, pos, side);
         if (!c.isEmpty() && h != null && slot < h.getSlots()) h.insertItem(slot, c, false);
     }
 
@@ -845,7 +846,7 @@ public final class Showcase {
     private static void assemblerPattern(ServerLevel sl, BlockPos pos) {
         ItemStack pattern = item("ae2:crafting_pattern", 1), in = item(AE2_INGREDIENT, 1), result = item(AE2_PRODUCT, 9);
         if (pattern.isEmpty() || in.isEmpty() || result.isEmpty()
-            || sl.getServer().getRecipeManager().byKey(ResourceLocation.parse(AE2_RECIPE)).isEmpty()) return;
+            || sl.getServer().getRecipeManager().byKey(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.RECIPE, Identifier.parse(AE2_RECIPE))).isEmpty()) return;
         DynamicOps<Tag> ops = sl.registryAccess().createSerializationContext(NbtOps.INSTANCE);
         ListTag inputs = new ListTag();
         for (int i = 0; i < 9; i++) inputs.add(i == 0 ? ItemStack.CODEC.encodeStart(ops, in).getOrThrow() : new CompoundTag());
@@ -862,7 +863,7 @@ public final class Showcase {
         parsed.result().ifPresent(pattern::applyComponents);
 
         // the raw, unfiltered inventory is only on the null side: 0..8 crafting grid (one item each), 9 output, 10 pattern
-        IItemHandler h = sl.getCapability(Capabilities.ItemHandler.BLOCK, pos, null);
+        IItemHandler h = Caps.items(sl, pos, null);
         if (h != null && h.getSlots() > 10) h.insertItem(10, pattern, false);
     }
 
@@ -892,10 +893,10 @@ public final class Showcase {
         CompoundTag entry = new CompoundTag();
         entry.putInt("Slot", 0);
         ListTag patterns = new ListTag();
-        patterns.add(pattern.save(sl.registryAccess(), entry));   // save() COPIES the prefix: the return value is the merged tag
+        patterns.add(entry.merge((CompoundTag) ItemStack.CODEC.encodeStart(sl.registryAccess().createSerializationContext(NbtOps.INSTANCE), pattern).getOrThrow()));
         CompoundTag tag = be.saveWithoutMetadata(sl.registryAccess());
         tag.put("patterns", patterns);
-        be.loadWithComponents(tag, sl.registryAccess());
+        be.loadWithComponents(net.minecraft.world.level.storage.TagValueInput.create(net.minecraft.util.ProblemReporter.DISCARDING, sl.registryAccess(), tag));
         be.setChanged();
     }
 
@@ -929,10 +930,10 @@ public final class Showcase {
             CompoundTag slot = new CompoundTag();
             slot.putInt("Slot", 0);
             ListTag ups = new ListTag();
-            ups.add(craftingCard.save(sl.registryAccess(), slot));
+            ups.add(slot.merge((CompoundTag) ItemStack.CODEC.encodeStart(sl.registryAccess().createSerializationContext(NbtOps.INSTANCE), craftingCard).getOrThrow()));
             tag.put("upgrades", ups);
         }
-        be.loadWithComponents(tag, sl.registryAccess());
+        be.loadWithComponents(net.minecraft.world.level.storage.TagValueInput.create(net.minecraft.util.ProblemReporter.DISCARDING, sl.registryAccess(), tag));
         be.setChanged();
     }
 
@@ -976,7 +977,7 @@ public final class Showcase {
 
     private static ItemStack item(String id, int count) {
 
-        return BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse(id)).map(i -> new ItemStack(i, count)).orElse(ItemStack.EMPTY);
+        return BuiltInRegistries.ITEM.getOptional(Identifier.parse(id)).map(i -> new ItemStack(i, count)).orElse(ItemStack.EMPTY);
     }
 
     private static void pipe(ServerLevel sl, BlockPos pos, PipeType type, PipeTier tier) {
@@ -1004,7 +1005,7 @@ public final class Showcase {
     }
 
     private static void fillEnergy(ServerLevel sl, BlockPos pos) {
-        IEnergyStorage e = sl.getCapability(Capabilities.EnergyStorage.BLOCK, pos, null);
+        IEnergyStorage e = Caps.energy(sl, pos, null);
         if (e != null) e.receiveEnergy(Integer.MAX_VALUE, false);
     }
 

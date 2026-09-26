@@ -55,7 +55,7 @@ public class RouterBlockEntity extends TickingBlockEntity implements MenuHost, C
 
     public final ItemStackHandler cards = new ItemStackHandler(CARDS) {
         @Override public boolean isItemValid(int slot, ItemStack stack) { return stack.getItem() instanceof LogisticsCardItem; }
-        @Override protected void onContentsChanged(int slot) { if (level != null && !level.isClientSide) sync(); else setChanged(); } // clients edit cards in place, keep them fresh
+        @Override protected void onContentsChanged(int slot) { if (level != null && !level.isClientSide()) sync(); else setChanged(); } // clients edit cards in place, keep them fresh
     };
     public final ItemStackHandler buffer = new ItemStackHandler(1) {
         @Override protected void onContentsChanged(int slot) { setChanged(); }
@@ -132,10 +132,10 @@ public class RouterBlockEntity extends TickingBlockEntity implements MenuHost, C
         java.util.Set<Long> want = new java.util.HashSet<>();
         if (chunkLoading()) {
             int cap = OmniConfig.ROUTER_CHUNKS.get();
-            want.add(net.minecraft.world.level.ChunkPos.asLong(worldPosition));
+            want.add(net.minecraft.world.level.ChunkPos.pack(worldPosition));
             for (int i = 0; i < CARDS && want.size() < cap; i++) {
                 net.minecraft.core.GlobalPos gp = cards.getStackInSlot(i).get(OmniLogistics.CARD_TARGET.get());
-                if (gp != null && gp.dimension() == sl.dimension()) want.add(net.minecraft.world.level.ChunkPos.asLong(gp.pos()));
+                if (gp != null && gp.dimension() == sl.dimension()) want.add(net.minecraft.world.level.ChunkPos.pack(gp.pos()));
             }
         }
         if (want.equals(forced)) return;
@@ -265,7 +265,7 @@ public class RouterBlockEntity extends TickingBlockEntity implements MenuHost, C
 
     private @Nullable FakePlayer fake(ServerLevel lvl, BlockPos at) {
         FakePlayer p = FakePlayerFactory.get(lvl, PROFILE);
-        p.moveTo(at.getX() + 0.5, at.getY() + 0.5, at.getZ() + 0.5, 0, 0);
+        p.snapTo(at.getX() + 0.5, at.getY() + 0.5, at.getZ() + 0.5, 0, 0);
         return p;
     }
 
@@ -382,26 +382,26 @@ public class RouterBlockEntity extends TickingBlockEntity implements MenuHost, C
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.saveAdditional(tag, regs);
-        tag.put("Cards", cards.serializeNBT(regs));
-        tag.put("Buffer", buffer.serializeNBT(regs));
-        tag.put("Upgrades", upgrades.serializeNBT(regs));
-        tag.put("Energy", energy.serializeNBT(regs));
-        tag.put("Fluid", fluid.writeToNBT(regs, new CompoundTag()));
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
+        super.saveAdditional(tag);
+        cards.serialize(tag.child("Cards"));
+        buffer.serialize(tag.child("Buffer"));
+        upgrades.serialize(tag.child("Upgrades"));
+        energy.serialize(tag.child("Energy"));
+        fluid.serialize(tag.child("Fluid"));
         tag.putInt("Signal", signal);
         tag.putInt("Interval", interval);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.loadAdditional(tag, regs);
-        if (tag.contains("Cards")) cards.deserializeNBT(regs, tag.getCompound("Cards"));
-        if (tag.contains("Buffer")) buffer.deserializeNBT(regs, tag.getCompound("Buffer"));
-        if (tag.contains("Upgrades")) upgrades.deserializeNBT(regs, tag.getCompound("Upgrades"));
-        if (tag.contains("Energy")) energy.deserializeNBT(regs, tag.get("Energy"));
-        if (tag.contains("Fluid")) fluid.readFromNBT(regs, tag.getCompound("Fluid"));
-        signal = tag.getInt("Signal");
-        interval = tag.getInt("Interval");   // old worlds carry "Speed" instead: dropped, upgrades no longer clock the router
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
+        super.loadAdditional(tag);
+        cards.deserialize(tag.childOrEmpty("Cards"));
+        buffer.deserialize(tag.childOrEmpty("Buffer"));
+        upgrades.deserialize(tag.childOrEmpty("Upgrades"));
+        energy.deserialize(tag.childOrEmpty("Energy"));
+        fluid.deserialize(tag.childOrEmpty("Fluid"));
+        signal = tag.getIntOr("Signal", 0);
+        interval = tag.getIntOr("Interval", 0);   // old worlds carry "Speed" instead: dropped, upgrades no longer clock the router
     }
 }

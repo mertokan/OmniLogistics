@@ -39,7 +39,7 @@ public record FilterSpec(List<ItemStack> refs, int flags, List<String> tags, Lis
             if (!in.isEmpty() && net.neoforged.neoforge.fluids.FluidStack.isSameFluid(in, fluid)) { hit = true; break; }
         }
         if (!hit) for (String tag : tags) {
-            net.minecraft.resources.ResourceLocation id = net.minecraft.resources.ResourceLocation.tryParse(tag);
+            net.minecraft.resources.Identifier id = net.minecraft.resources.Identifier.tryParse(tag);
             if (id != null && fluid.getFluid().builtInRegistryHolder()
                 .is(net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.FLUID, id))) { hit = true; break; }
         }
@@ -84,40 +84,18 @@ public record FilterSpec(List<ItemStack> refs, int flags, List<String> tags, Lis
         return List.copyOf(out);
     }
 
-    public void save(CompoundTag tag, HolderLookup.Provider regs) {
-        if (!refs.isEmpty()) {
-            ListTag list = new ListTag();
-            for (ItemStack s : refs) list.add(s.isEmpty() ? new CompoundTag() : (CompoundTag) s.save(regs));
-            tag.put("Filters", list);
-        }
-        tag.putInt("Flags", flags);
-        tag.put("Tags", strings(tags));
-        tag.put("Components", strings(components));
-        if (!rules.isEmpty())
-            NbtRule.CODEC.listOf().encodeStart(net.minecraft.nbt.NbtOps.INSTANCE, rules).result().ifPresent(t -> tag.put("Nbt", t));
+    public void save(net.minecraft.world.level.storage.ValueOutput out) {
+        if (!refs.isEmpty()) out.store("Filters", ItemStack.OPTIONAL_CODEC.listOf(), refs);
+        out.putInt("Flags", flags);
+        out.store("Tags", com.mojang.serialization.Codec.STRING.listOf(), tags);
+        out.store("Components", com.mojang.serialization.Codec.STRING.listOf(), components);
+        if (!rules.isEmpty()) out.store("Nbt", NbtRule.CODEC.listOf(), rules);
     }
 
-    public static FilterSpec load(CompoundTag tag, HolderLookup.Provider regs) {
-        List<ItemStack> refs = new ArrayList<>();
-        if (tag.contains("Filters"))
-            for (Tag t : tag.getList("Filters", Tag.TAG_COMPOUND)) refs.add(ItemStack.parseOptional(regs, (CompoundTag) t));
-        else if (tag.contains("Filter")) refs.add(ItemStack.parseOptional(regs, tag.getCompound("Filter")));   // pre-multi saves
-        List<NbtRule> rules = tag.contains("Nbt")
-            ? NbtRule.CODEC.listOf().parse(net.minecraft.nbt.NbtOps.INSTANCE, tag.get("Nbt")).result().orElse(List.of())
-            : List.of();
-        return new FilterSpec(List.copyOf(refs), tag.getInt("Flags"), strings(tag.getList("Tags", Tag.TAG_STRING)),
-            strings(tag.getList("Components", Tag.TAG_STRING)), NbtRule.clean(rules));
-    }
-
-    private static ListTag strings(List<String> in) {
-        ListTag list = new ListTag();
-        for (String s : in) list.add(StringTag.valueOf(s));
-        return list;
-    }
-
-    private static List<String> strings(ListTag in) {
-        List<String> out = new ArrayList<>();
-        for (Tag t : in) out.add(t.getAsString());
-        return List.copyOf(out);
+    public static FilterSpec load(net.minecraft.world.level.storage.ValueInput in) {
+        var strings = com.mojang.serialization.Codec.STRING.listOf();
+        return new FilterSpec(List.copyOf(in.read("Filters", ItemStack.OPTIONAL_CODEC.listOf()).orElse(List.of())),
+            in.getIntOr("Flags", 0), in.read("Tags", strings).orElse(List.of()), in.read("Components", strings).orElse(List.of()),
+            NbtRule.clean(in.read("Nbt", NbtRule.CODEC.listOf()).orElse(List.of())));
     }
 }

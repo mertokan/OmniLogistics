@@ -7,7 +7,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -53,26 +52,26 @@ public class MonitorBlock extends MachineBlock {
 
     /** A Logistics Card in hand goes in (the wrench and everything else falls through to {@link MachineBlock}). */
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (!LogisticsCardItem.isFilterCard(stack)) return super.useItemOn(stack, state, level, pos, player, hand, hit);
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof MonitorBlockEntity be) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof MonitorBlockEntity be) {
             ItemStack old = be.card.getStackInSlot(0);
             if (!old.isEmpty()) player.getInventory().placeItemBackInInventory(old);
             be.card.setStackInSlot(0, stack.split(1));
-            player.displayClientMessage(LogisticsCardItem.targetPos(be.card.getStackInSlot(0)) == null
+            player.sendOverlayMessage(LogisticsCardItem.targetPos(be.card.getStackInSlot(0)) == null
                 ? Component.translatable("msg.omnilogistics.monitor_unbound")
-                : Component.translatable("msg.omnilogistics.monitor_watching", LogisticsCardItem.targetPos(be.card.getStackInSlot(0)).toShortString()), true);
+                : Component.translatable("msg.omnilogistics.monitor_watching", LogisticsCardItem.targetPos(be.card.getStackInSlot(0)).toShortString()));
         }
-        return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     /** Empty hand: the card comes back out. */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof MonitorBlockEntity be) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof MonitorBlockEntity be) {
             ItemStack c = be.card.extractItem(0, 1, false);
             if (!c.isEmpty()) player.getInventory().placeItemBackInInventory(c);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 }

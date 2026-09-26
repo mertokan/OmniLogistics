@@ -18,7 +18,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -54,11 +54,14 @@ public class OmniJeiPlugin implements IModPlugin {
         ItemStack from = new ItemStack(OmniLogistics.CARD.get());
         for (int i = 0; i < caps.length; i++) {
             ItemStack to = new ItemStack(OmniLogistics.MULTI_CARDS.get(caps[i]).get());
-            var ingredients = net.minecraft.core.NonNullList.of(net.minecraft.world.item.crafting.Ingredient.EMPTY,
-                net.minecraft.world.item.crafting.Ingredient.of(from), net.minecraft.world.item.crafting.Ingredient.of(cores[i]));
+            var ingredients = List.of(net.minecraft.world.item.crafting.Ingredient.of(from.getItem()),
+                net.minecraft.world.item.crafting.Ingredient.of(cores[i].getItem()));
             out.add(new net.minecraft.world.item.crafting.RecipeHolder<>(
-                ResourceLocation.fromNamespaceAndPath(OmniLogistics.MODID, "card_upgrade_" + caps[i]),
-                new net.minecraft.world.item.crafting.ShapelessRecipe("", net.minecraft.world.item.crafting.CraftingBookCategory.MISC, to, ingredients)));
+                net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.RECIPE,
+                    Identifier.fromNamespaceAndPath(OmniLogistics.MODID, "card_upgrade_" + caps[i])),
+                new net.minecraft.world.item.crafting.ShapelessRecipe(new net.minecraft.world.item.crafting.Recipe.CommonInfo(false),
+                    new net.minecraft.world.item.crafting.CraftingRecipe.CraftingBookInfo(net.minecraft.world.item.crafting.CraftingBookCategory.MISC, ""),
+                    new net.minecraft.world.item.ItemStackTemplate(to.getItem()), ingredients)));
             from = to;
         }
         return out;
@@ -73,8 +76,8 @@ public class OmniJeiPlugin implements IModPlugin {
     public record MinerDrops(MinerTier tier, List<ItemStack> items, List<String> chance) {}
 
     @Override
-    public ResourceLocation getPluginUid() {
-        return ResourceLocation.fromNamespaceAndPath(OmniLogistics.MODID, "jei");
+    public Identifier getPluginUid() {
+        return Identifier.fromNamespaceAndPath(OmniLogistics.MODID, "jei");
     }
 
     @Override
@@ -161,7 +164,7 @@ public class OmniJeiPlugin implements IModPlugin {
     private static List<MinerDrops> minerDrops() {
         List<MinerDrops> out = new ArrayList<>();
         var res = Minecraft.getInstance().getResourceManager()
-            .getResource(ResourceLocation.fromNamespaceAndPath(OmniLogistics.MODID, "miner_loot.json"));
+            .getResource(Identifier.fromNamespaceAndPath(OmniLogistics.MODID, "miner_loot.json"));
         if (res.isEmpty()) return out;
         try (BufferedReader in = res.get().openAsReader()) {
             JsonObject root = GsonHelper.parse(in);
@@ -173,7 +176,7 @@ public class OmniJeiPlugin implements IModPlugin {
                 List<ItemStack> items = new ArrayList<>();
                 List<String> chance = new ArrayList<>();
                 for (var e : o.entrySet()) {
-                    Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(e.getKey()));
+                    Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(e.getKey()));
                     if (item == Items.AIR) continue;             // item removed by a pack / missing mod
                     items.add(new ItemStack(item));
                     chance.add(String.format(Locale.ROOT, "%.1f", 100.0 * e.getValue().getAsInt() / total));

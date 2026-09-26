@@ -7,7 +7,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.ItemStackHandler;
@@ -67,7 +67,7 @@ public class FilterMenu extends AbstractContainerMenu {
         int gx = gridX(this.refs), invY = INV_Y + shift(this.refs);
         for (int i = 0; i < this.refs; i++)
             addSlot(new SlotItemHandler(ghost, i, gx + (i % 8) * 18, GRID_Y + (i / 8) * 18));
-        int locked = hand == 0 ? inv.selected : -1; // the card being edited must stay in hand
+        int locked = hand == 0 ? inv.getSelectedSlot() : -1; // the card being edited must stay in hand
         for (int r = 0; r < 3; r++)
             for (int c = 0; c < 9; c++) addSlot(new Slot(inv, c + r * 9 + 9, INV_X + c * 18, invY + r * 18));
         for (int c = 0; c < 9; c++) {
@@ -98,7 +98,7 @@ public class FilterMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public void clicked(int slotId, int button, ClickType type, Player player) {
+    public void clicked(int slotId, int button, ContainerInput type, Player player) {
         if (slotId >= 0 && slotId < refs) {
             setFilter(slotId, getCarried().copyWithCount(1)); // empty carried = clear this slot
             return;
@@ -120,7 +120,7 @@ public class FilterMenu extends AbstractContainerMenu {
     private void setFilter(int index, ItemStack stack) {
         ghost.setStackInSlot(index, stack);
         FilterHost h = host();
-        if (h != null && !player.level().isClientSide) h.setFilter(index, stack);
+        if (h != null && !player.level().isClientSide()) h.setFilter(index, stack);
     }
 
     @Override

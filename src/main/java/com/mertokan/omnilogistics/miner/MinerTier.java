@@ -5,7 +5,7 @@ import com.mertokan.omnilogistics.OmniLogistics;
 import com.mertokan.omnilogistics.core.OmniConfig;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.storage.loot.LootTable;
 
@@ -39,7 +39,7 @@ public enum MinerTier implements StringRepresentable {
 
     /** data/omnilogistics/loot_table/miner/[tier].json, datapack-editable. */
     public ResourceKey<LootTable> loot() {
-        return ResourceKey.create(Registries.LOOT_TABLE, ResourceLocation.fromNamespaceAndPath(OmniLogistics.MODID, "miner/" + getSerializedName()));
+        return ResourceKey.create(Registries.LOOT_TABLE, Identifier.fromNamespaceAndPath(OmniLogistics.MODID, "miner/" + getSerializedName()));
     }
 
     @Override

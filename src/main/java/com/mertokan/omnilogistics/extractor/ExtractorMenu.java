@@ -100,6 +100,6 @@ public class ExtractorMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return player.canInteractWithBlock(pos, 4.0) && player.level().getBlockEntity(pos) instanceof ExtractorBlockEntity;
+        return player.isWithinBlockInteractionRange(pos, 4.0) && player.level().getBlockEntity(pos) instanceof ExtractorBlockEntity;
     }
 }

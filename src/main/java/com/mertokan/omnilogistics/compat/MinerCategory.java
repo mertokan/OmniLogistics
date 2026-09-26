@@ -10,7 +10,7 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.AbstractRecipeCategory;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
@@ -25,7 +25,7 @@ public class MinerCategory extends AbstractRecipeCategory<OmniJeiPlugin.MinerDro
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder b, OmniJeiPlugin.MinerDrops r, IFocusGroup focuses) {
-        b.addSlot(RecipeIngredientRole.CATALYST, 1, GY)
+        b.addSlot(RecipeIngredientRole.CRAFTING_STATION, 1, GY)
             .addItemStack(new ItemStack(OmniLogistics.MINER_ITEMS.get(r.tier()).get()))
             .setStandardSlotBackground()
             .addRichTooltipCallback((v, t) -> t.add(Component.translatable("jei.omnilogistics.miner_default").withStyle(ChatFormatting.DARK_GRAY)));
@@ -39,7 +39,7 @@ public class MinerCategory extends AbstractRecipeCategory<OmniJeiPlugin.MinerDro
     }
 
     @Override
-    public void draw(OmniJeiPlugin.MinerDrops r, IRecipeSlotsView view, GuiGraphics g, double mouseX, double mouseY) {
-        g.drawString(Minecraft.getInstance().font, OmniLogistics.MINERS.get(r.tier()).get().getName(), 1, 2, r.tier().color, false);
+    public void draw(OmniJeiPlugin.MinerDrops r, IRecipeSlotsView view, GuiGraphicsExtractor g, double mouseX, double mouseY) {
+        g.text(Minecraft.getInstance().font, OmniLogistics.MINERS.get(r.tier()).get().getName(), 1, 2, r.tier().color, false);
     }
 }

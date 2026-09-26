@@ -7,7 +7,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.inventory.ContainerData;
@@ -62,8 +62,8 @@ public class RouterMenu extends AbstractContainerMenu {
 
     /** Right-click a card in its slot: filter cards open their GUI in place, mode-only cards flip EXTRACT / INSERT. */
     @Override
-    public void clicked(int slotId, int button, ClickType type, Player player) {
-        if (slotId >= 0 && slotId < CARDS && button == 1 && type == ClickType.PICKUP && getCarried().isEmpty()
+    public void clicked(int slotId, int button, ContainerInput type, Player player) {
+        if (slotId >= 0 && slotId < CARDS && button == 1 && type == ContainerInput.PICKUP && getCarried().isEmpty()
             && slots.get(slotId).getItem().getItem() instanceof LogisticsCardItem c && (c.kind.hasFilter || c.kind.hasMode)) {
             if (player instanceof ServerPlayer sp && be != null && !SlotCardHost.open(sp, be, pos, slotId)) {
                 ItemStack card = slots.get(slotId).getItem();
@@ -97,6 +97,6 @@ public class RouterMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return player.canInteractWithBlock(pos, 4.0) && (be == null || player.level().getBlockEntity(pos) == be);
+        return player.isWithinBlockInteractionRange(pos, 4.0) && (be == null || player.level().getBlockEntity(pos) == be);
     }
 }

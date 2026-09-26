@@ -100,11 +100,12 @@ public final class ComponentExtractor {
 
     private static void walk(Tag tag, List<ItemStack> out, HolderLookup.Provider regs) {
         if (tag instanceof CompoundTag c) {
-            if (c.contains("id", Tag.TAG_STRING) && c.contains("count", Tag.TAG_INT)) {
-                ItemStack.parse(regs, c).filter(s -> !s.isEmpty()).ifPresent(out::add);
+            if (c.get("id") instanceof net.minecraft.nbt.StringTag && c.get("count") instanceof net.minecraft.nbt.IntTag) {
+                ItemStack.CODEC.parse(regs.createSerializationContext(net.minecraft.nbt.NbtOps.INSTANCE), c).result()
+                    .filter(s -> !s.isEmpty()).ifPresent(out::add);
                 return;
             }
-            for (String k : c.getAllKeys()) walk(c.get(k), out, regs);
+            for (String k : c.keySet()) walk(c.get(k), out, regs);
         } else if (tag instanceof ListTag l) {
             for (Tag t : l) walk(t, out, regs);
         }

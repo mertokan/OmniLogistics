@@ -1,5 +1,6 @@
 package com.mertokan.omnilogistics.router;
 
+import com.mertokan.omnilogistics.core.Caps;
 import com.mertokan.omnilogistics.OmniLogistics;
 import com.mertokan.omnilogistics.api.ComponentPredicateEngine;
 import com.mertokan.omnilogistics.core.FilterMenu;
@@ -7,16 +8,15 @@ import com.mertokan.omnilogistics.api.FilterSpec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
@@ -78,7 +78,7 @@ public class LogisticsCardItem extends Item {
     public boolean overrideOtherStackedOnMe(ItemStack stack, ItemStack other, Slot slot, ClickAction action, Player player, SlotAccess access) {
         if (action != ClickAction.SECONDARY || !(other.getItem() instanceof LogisticsCardItem src) || src.kind != kind) return false;
         CardConfig.copyFilter(other, stack);
-        player.displayClientMessage(Component.translatable("msg.omnilogistics.card_copied"), true);
+        player.sendOverlayMessage(Component.translatable("msg.omnilogistics.card_copied"));
         return true;
     }
 
@@ -108,7 +108,7 @@ public class LogisticsCardItem extends Item {
     public static Component boundName(ItemStack card) {
         String id = card.get(OmniLogistics.CARD_TARGET_BLOCK.get());
         if (id == null) return Component.translatable("tooltip.omnilogistics.card_target_unknown");
-        var block = BuiltInRegistries.BLOCK.getOptional(ResourceLocation.parse(id));
+        var block = BuiltInRegistries.BLOCK.getOptional(Identifier.parse(id));
         return block.isPresent() ? block.get().getName() : Component.literal(id);
     }
 
@@ -116,24 +116,24 @@ public class LogisticsCardItem extends Item {
     public InteractionResult useOn(UseOnContext ctx) {
         Player p = ctx.getPlayer();
         if (p == null || !p.isShiftKeyDown()) return InteractionResult.PASS;
-        if (!ctx.getLevel().isClientSide) {
+        if (!ctx.getLevel().isClientSide()) {
             ItemStack s = ctx.getItemInHand();
             bind(s, ctx.getLevel(), ctx.getClickedPos(), ctx.getClickedFace());
-            p.displayClientMessage(Component.translatable("msg.omnilogistics.card_bound",
-                ctx.getClickedPos().toShortString(), ctx.getClickedFace().getName()), true);
+            p.sendOverlayMessage(Component.translatable("msg.omnilogistics.card_bound",
+                ctx.getClickedPos().toShortString(), ctx.getClickedFace().getName()));
         }
-        return InteractionResult.sidedSuccess(ctx.getLevel().isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         // a tier core in the other hand turns this click into the upgrade ritual instead of opening the filter
         if (!CardUpgradeRecipe.upgraded(stack, player.getItemInHand(other(hand))).isEmpty()) {
             player.startUsingItem(hand);
-            return InteractionResultHolder.consume(stack);
+            return InteractionResult.CONSUME;
         }
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             if (kind.hasFilter) {
                 CardHost host = new CardHost(player, hand);
                 player.openMenu(new SimpleMenuProvider((id, inv, p) -> new FilterMenu(id, inv, host, BlockPos.ZERO, hand.ordinal()), stack.getHoverName()),
@@ -141,10 +141,10 @@ public class LogisticsCardItem extends Item {
             } else if (kind.hasMode) {
                 int mode = stack.getOrDefault(OmniLogistics.CARD_MODE.get(), EXTRACT) ^ 1;
                 stack.set(OmniLogistics.CARD_MODE.get(), mode);
-                player.displayClientMessage(Component.translatable("tooltip.omnilogistics.card_mode", mode == INSERT ? "INSERT" : "EXTRACT"), true);
+                player.sendOverlayMessage(Component.translatable("tooltip.omnilogistics.card_mode", mode == INSERT ? "INSERT" : "EXTRACT"));
             }
         }
-        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     /** How long the upgrade takes; long enough to see it happen, short enough not to be a chore. */
@@ -160,8 +160,8 @@ public class LogisticsCardItem extends Item {
     }
 
     @Override
-    public UseAnim getUseAnimation(ItemStack stack) {
-        return UseAnim.BRUSH;   // the scrubbing motion: it reads as rubbing the core into the card
+    public ItemUseAnimation getUseAnimation(ItemStack stack) {
+        return ItemUseAnimation.BRUSH;   // the scrubbing motion: it reads as rubbing the core into the card
     }
 
     /** Sparks and a rising hum while the core is absorbed. */
@@ -169,7 +169,7 @@ public class LogisticsCardItem extends Item {
     public void onUseTick(Level level, LivingEntity entity, ItemStack stack, int remaining) {
         int done = UPGRADE_TICKS - remaining;
         if (!(entity instanceof Player player)) return;
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             // everything happens in the gap between the two hands, right in front of the eyes
             Vec3 hands = entity.getEyePosition().add(entity.getLookAngle().scale(0.65)).subtract(0, 0.25, 0);
             double a = done * 0.55, r = 0.28 - done * 0.004;
@@ -180,9 +180,9 @@ public class LogisticsCardItem extends Item {
             }
             if (done % 2 == 0)                                    // friction sparks off the core
                 level.addParticle(done > UPGRADE_TICKS * 2 / 3 ? ParticleTypes.END_ROD : ParticleTypes.CRIT,
-                    hands.x + (level.random.nextDouble() - 0.5) * 0.2, hands.y + (level.random.nextDouble() - 0.5) * 0.12,
-                    hands.z + (level.random.nextDouble() - 0.5) * 0.2,
-                    (level.random.nextDouble() - 0.5) * 0.08, level.random.nextDouble() * 0.05, (level.random.nextDouble() - 0.5) * 0.08);
+                    hands.x + (level.getRandom().nextDouble() - 0.5) * 0.2, hands.y + (level.getRandom().nextDouble() - 0.5) * 0.12,
+                    hands.z + (level.getRandom().nextDouble() - 0.5) * 0.2,
+                    (level.getRandom().nextDouble() - 0.5) * 0.08, level.getRandom().nextDouble() * 0.05, (level.getRandom().nextDouble() - 0.5) * 0.08);
         } else {
             float t = done / (float) UPGRADE_TICKS;
             if (done % 5 == 0)                                    // the rub itself
@@ -200,17 +200,17 @@ public class LogisticsCardItem extends Item {
         ItemStack core = player.getItemInHand(other(player.getUsedItemHand()));
         ItemStack out = CardUpgradeRecipe.upgraded(card, core);
         if (out.isEmpty()) return card;
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             core.shrink(1);
             level.playSound(null, entity.blockPosition(), SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.7f, 1.4f);
             if (player instanceof net.minecraft.server.level.ServerPlayer sp) {
                 CardUpgradeRecipe.learn(sp);
-                sp.displayClientMessage(Component.translatable("msg.omnilogistics.card_upgraded", out.getHoverName()), true);
+                sp.sendOverlayMessage(Component.translatable("msg.omnilogistics.card_upgraded", out.getHoverName()));
             }
         } else {
             for (int i = 0; i < 24; i++)
                 level.addParticle(ParticleTypes.END_ROD, entity.getX(), entity.getEyeY() - 0.3, entity.getZ(),
-                    (level.random.nextDouble() - 0.5) * 0.3, level.random.nextDouble() * 0.25, (level.random.nextDouble() - 0.5) * 0.3);
+                    (level.getRandom().nextDouble() - 0.5) * 0.3, level.getRandom().nextDouble() * 0.25, (level.getRandom().nextDouble() - 0.5) * 0.3);
         }
         return out;
     }
@@ -258,7 +258,7 @@ public class LogisticsCardItem extends Item {
         Direction bound = targetSide(card);
         boolean hasFaces = false;
         for (Direction d : sides(bound)) {
-            IItemHandler h = lvl.getCapability(Capabilities.ItemHandler.BLOCK, target, d);
+            IItemHandler h = Caps.items(lvl, target, d);
             if (h == null) continue;
             hasFaces = true;
             if (works.test(h)) return h;
@@ -267,7 +267,7 @@ public class LogisticsCardItem extends Item {
         // crafting output, a smelting result. Forcing a FACE is our job; reaching behind a declared interface is not.
         // So the unsided handler is only for blocks that expose no face at all.
         if (hasFaces) return null;
-        IItemHandler any = lvl.getCapability(Capabilities.ItemHandler.BLOCK, target, null);
+        IItemHandler any = Caps.items(lvl, target, null);
         return any != null && works.test(any) ? any : null;
     }
 
@@ -295,13 +295,13 @@ public class LogisticsCardItem extends Item {
         BlockPos target = targetPos(card);
         Direction bound = targetSide(card);
         for (Direction d : sides(bound)) {
-            IEnergyStorage e = lvl.getCapability(Capabilities.EnergyStorage.BLOCK, target, d);
+            IEnergyStorage e = Caps.energy(lvl, target, d);
             // probe with a real amount first: Mekanism converts FE to Joules and rounds 1 FE down to nothing, so a
             // one-unit probe answers "this face takes no power" on a machine that is perfectly happy to be charged
             if (e != null && (extract ? e.extractEnergy(1000, true) > 0 || e.extractEnergy(1, true) > 0
                                       : e.receiveEnergy(1000, true) > 0 || e.receiveEnergy(1, true) > 0)) return e;
         }
-        return lvl.getCapability(Capabilities.EnergyStorage.BLOCK, target, null);
+        return Caps.energy(lvl, target, null);
     }
 
     /** And for fluid: the face that will take (or give) this much. */
@@ -311,13 +311,13 @@ public class LogisticsCardItem extends Item {
         BlockPos target = targetPos(card);
         boolean hasFaces = false;
         for (Direction d : sides(targetSide(card))) {
-            IFluidHandler f = lvl.getCapability(Capabilities.FluidHandler.BLOCK, target, d);
+            IFluidHandler f = Caps.fluids(lvl, target, d);
             if (f == null || f.getTanks() == 0) continue;
             hasFaces = true;
             if (extract ? !f.getFluidInTank(0).isEmpty() : f.getTankCapacity(0) > f.getFluidInTank(0).getAmount()) return f;
         }
         if (hasFaces) return null;   // same rule as items: an output tank is not ours to fill
-        return lvl.getCapability(Capabilities.FluidHandler.BLOCK, target, null);
+        return Caps.fluids(lvl, target, null);
     }
 
     /** The bound face first, then the rest. */
@@ -332,21 +332,28 @@ public class LogisticsCardItem extends Item {
 
     public static @Nullable IItemHandler resolveTarget(ItemStack card, ServerLevel from, BlockPos fromPos, int range) {
         ServerLevel lvl = targetLevel(card, from, fromPos, range);
-        return lvl == null ? null : lvl.getCapability(Capabilities.ItemHandler.BLOCK, targetPos(card), targetSide(card));
+        return lvl == null ? null : Caps.items(lvl, targetPos(card), targetSide(card));
     }
 
     public static @Nullable IEnergyStorage resolveEnergyTarget(ItemStack card, ServerLevel from, BlockPos fromPos, int range) {
         ServerLevel lvl = targetLevel(card, from, fromPos, range);
-        return lvl == null ? null : lvl.getCapability(Capabilities.EnergyStorage.BLOCK, targetPos(card), targetSide(card));
+        return lvl == null ? null : Caps.energy(lvl, targetPos(card), targetSide(card));
     }
 
     public static @Nullable IFluidHandler resolveFluidTarget(ItemStack card, ServerLevel from, BlockPos fromPos, int range) {
         ServerLevel lvl = targetLevel(card, from, fromPos, range);
-        return lvl == null ? null : lvl.getCapability(Capabilities.FluidHandler.BLOCK, targetPos(card), targetSide(card));
+        return lvl == null ? null : Caps.fluids(lvl, targetPos(card), targetSide(card));
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext ctx, List<Component> tip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, TooltipContext ctx, net.minecraft.world.item.component.TooltipDisplay display,
+                                java.util.function.Consumer<Component> out, TooltipFlag flag) {
+        List<Component> tip = new java.util.ArrayList<>();
+        describe(stack, tip);
+        tip.forEach(out);
+    }
+
+    private void describe(ItemStack stack, List<Component> tip) {
         if (kind.hasMode) tip.add(Component.translatable("tooltip.omnilogistics.card_mode", extractMode(stack) ? "EXTRACT" : "INSERT"));
         GlobalPos gp = stack.get(OmniLogistics.CARD_TARGET.get());
         Direction side = stack.get(OmniLogistics.CARD_SIDE.get());
@@ -355,7 +362,7 @@ public class LogisticsCardItem extends Item {
         } else {
             tip.add(Component.translatable("tooltip.omnilogistics.card_bound_to", boundName(stack)).withStyle(ChatFormatting.AQUA));
             tip.add(Component.translatable("tooltip.omnilogistics.card_target", gp.pos().toShortString(),
-                side == null ? "-" : side.getName(), gp.dimension().location().getPath()).withStyle(ChatFormatting.DARK_GRAY));
+                side == null ? "-" : side.getName(), gp.dimension().identifier().getPath()).withStyle(ChatFormatting.DARK_GRAY));
             tip.add(Component.translatable("tooltip.omnilogistics.card_locate",
                 Component.keybind("key.omnilogistics.locate")).withStyle(ChatFormatting.DARK_GRAY));
         }

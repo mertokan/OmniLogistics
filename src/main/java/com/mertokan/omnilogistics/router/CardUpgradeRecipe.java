@@ -16,8 +16,12 @@ import net.neoforged.neoforge.common.Tags;
  * one Logistics Card + gold / diamond / netherite -> the 4 / 16 / 64 reference version of it.
  */
 public class CardUpgradeRecipe extends CustomRecipe {
-    public CardUpgradeRecipe(CraftingBookCategory category) {
-        super(category);
+    /** No settings of its own, so one instance serves every recipe file that names this type. */
+    public static final CardUpgradeRecipe INSTANCE = new CardUpgradeRecipe();
+    public static final RecipeSerializer<CardUpgradeRecipe> SERIALIZER = new RecipeSerializer<>(
+        com.mojang.serialization.MapCodec.unit(INSTANCE), net.minecraft.network.codec.StreamCodec.unit(INSTANCE));
+
+    private CardUpgradeRecipe() {
     }
 
     /** upgrades[0] = speed upgrades in the grid, upgrades[1] = the capacity the tier core upgrades to (0 = none). */
@@ -76,7 +80,7 @@ public class CardUpgradeRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingInput in, HolderLookup.Provider regs) {
+    public ItemStack assemble(CraftingInput in) {
         int[] n = new int[2];
         ItemStack card = find(in, n);
         if (n[1] > 0) {   // tier up: a bigger card carrying everything the old one had
@@ -92,18 +96,13 @@ public class CardUpgradeRecipe extends CustomRecipe {
     /** Doing it by hand once is the tutorial: it hands the player the advancement that says the crafting table can do
      *  this too, which is what everybody wants the moment they start automating. */
     public static void learn(net.minecraft.server.level.ServerPlayer player) {
-        var advancements = player.server.getAdvancements()
-            .get(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(OmniLogistics.MODID, "card_upgrade"));
+        var advancements = player.level().getServer().getAdvancements()
+            .get(net.minecraft.resources.Identifier.fromNamespaceAndPath(OmniLogistics.MODID, "card_upgrade"));
         if (advancements != null) player.getAdvancements().award(advancements, "code");
     }
 
     @Override
-    public boolean canCraftInDimensions(int w, int h) {
-        return w * h >= 2;
-    }
-
-    @Override
-    public RecipeSerializer<?> getSerializer() {
-        return OmniLogistics.CARD_UPGRADE_RECIPE.get();
+    public RecipeSerializer<CardUpgradeRecipe> getSerializer() {
+        return SERIALIZER;
     }
 }

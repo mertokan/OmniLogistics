@@ -36,7 +36,7 @@ public class VoidMinerBlock extends MachineBlock {
     /** Clients tick too: the particles being sucked into the beam. */
     @Override
     public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (!level.isClientSide) return super.getTicker(level, state, type);
+        if (!level.isClientSide()) return super.getTicker(level, state, type);
         return (l, p, s, be) -> { if (be instanceof VoidMinerBlockEntity m) m.clientTick(); };
     }
 }

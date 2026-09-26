@@ -125,17 +125,17 @@ public class ExposerBlockEntity extends TickingBlockEntity implements FilterHost
     // ---- NBT --------------------------------------------------------------------
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.saveAdditional(tag, regs);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
+        super.saveAdditional(tag);
         tag.putInt("Target", target == null ? -1 : target.ordinal());
-        spec.save(tag, regs);
+        spec.save(tag.child("Filter"));
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.loadAdditional(tag, regs);
-        int t = tag.getInt("Target");
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
+        super.loadAdditional(tag);
+        int t = tag.getIntOr("Target", 0);
         target = t >= 0 && t < 6 ? Direction.values()[t] : null;
-        spec = FilterSpec.load(tag, regs);
+        spec = FilterSpec.load(tag.childOrEmpty("Filter"));
     }
 }

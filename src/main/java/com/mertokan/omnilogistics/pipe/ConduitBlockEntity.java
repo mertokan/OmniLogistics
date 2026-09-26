@@ -201,7 +201,7 @@ public abstract class ConduitBlockEntity extends TickingBlockEntity implements W
 
     protected void modesChanged() {
         sync();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             invalidateCapabilities();
             SmartPipeBlock.refresh(level, worldPosition);
         }
@@ -229,19 +229,21 @@ public abstract class ConduitBlockEntity extends TickingBlockEntity implements W
     // ---- NBT ------------------------------------------------------------------------
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.saveAdditional(tag, regs);
-        tag.putByteArray("Sides", modes());
-        tag.putByte("Redstone", (byte) redstone.ordinal());
-        if (lastFrom != null) tag.putByte("LastFrom", (byte) lastFrom.ordinal());
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
+        super.saveAdditional(tag);
+        int[] m = new int[6];
+        for (int i = 0; i < 6; i++) m[i] = sides[i].ordinal();
+        tag.putIntArray("Sides", m);
+        tag.putInt("Redstone", redstone.ordinal());
+        if (lastFrom != null) tag.putInt("LastFrom", lastFrom.ordinal());
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.loadAdditional(tag, regs);
-        byte[] b = tag.getByteArray("Sides");
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
+        super.loadAdditional(tag);
+        int[] b = tag.getIntArray("Sides").orElse(new int[0]);
         for (int i = 0; i < 6; i++) sides[i] = b.length == 6 ? Mode.values()[Math.floorMod(b[i], Mode.values().length)] : Mode.NORMAL;
-        redstone = Redstone.values()[Math.floorMod(tag.getByte("Redstone"), Redstone.values().length)];
-        lastFrom = tag.contains("LastFrom") ? Direction.values()[Math.floorMod(tag.getByte("LastFrom"), 6)] : null;
+        redstone = Redstone.values()[Math.floorMod(tag.getIntOr("Redstone", 0), Redstone.values().length)];
+        lastFrom = tag.getInt("LastFrom").map(i -> Direction.values()[Math.floorMod(i, 6)]).orElse(null);
     }
 }

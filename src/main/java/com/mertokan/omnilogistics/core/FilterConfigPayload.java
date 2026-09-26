@@ -12,7 +12,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
@@ -28,7 +28,7 @@ import java.util.List;
 public record FilterConfigPayload(BlockPos pos, int hand, byte[] modes, int flags, List<String> tags, List<String> components,
                                   List<NbtRule> rules) implements CustomPacketPayload {
     public static final Type<FilterConfigPayload> TYPE =
-        new Type<>(ResourceLocation.fromNamespaceAndPath(OmniLogistics.MODID, "filter_config"));
+        new Type<>(Identifier.fromNamespaceAndPath(OmniLogistics.MODID, "filter_config"));
 
     private static final StreamCodec<io.netty.buffer.ByteBuf, List<String>> TAGS =
         ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list(FilterSpec.MAX_TAGS));
@@ -77,7 +77,7 @@ public record FilterConfigPayload(BlockPos pos, int hand, byte[] modes, int flag
             InteractionHand h = InteractionHand.values()[hand & 1];
             return p.getItemInHand(h).getItem() instanceof LogisticsCardItem ? new CardHost(p, h) : null;
         }
-        if (!p.canInteractWithBlock(pos, 4.0)) return null;
+        if (!p.isWithinBlockInteractionRange(pos, 4.0)) return null;
         if (hand <= -2) return p.level().getBlockEntity(pos) instanceof CardSlots c ? SlotCardHost.of(c, SlotCardHost.slotOf(hand)) : null;
         return p.level().getBlockEntity(pos) instanceof FilterHost f ? f : null;
     }

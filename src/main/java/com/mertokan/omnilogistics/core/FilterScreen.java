@@ -3,7 +3,7 @@ package com.mertokan.omnilogistics.core;
 import com.mertokan.omnilogistics.api.ComponentPredicateEngine;
 import com.mertokan.omnilogistics.api.FilterSpec;
 import com.mertokan.omnilogistics.api.NbtRule;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
@@ -105,7 +105,7 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
     // ---- sending ----------------------------------------------------------------
 
     private void send(byte[] modes, int flags, List<String> tags, List<String> comps, List<NbtRule> rules) {
-        PacketDistributor.sendToServer(FilterConfigPayload.of(menu, modes, flags, tags, comps, rules));
+        net.neoforged.neoforge.client.network.ClientPacketDistributor.sendToServer(FilterConfigPayload.of(menu, modes, flags, tags, comps, rules));
     }
 
     private void cycle(int i) {
@@ -222,21 +222,21 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
     private int oh() { return isNbt() ? NBT_H : PICK_H; }
     private boolean isNbt() { return picker == Picker.NBT || picker == Picker.NBT_PICK; }
 
-    private void frame(GuiGraphics g, Component title) {
+    private void frame(GuiGraphicsExtractor g, Component title) {
         frame(g, title, isNbt() && picker == Picker.NBT ? 170 : 24);
     }
 
     /** Overlay box with a title bar; {@code room} is what the header chips on the right take. */
-    private void frame(GuiGraphics g, Component title, int room) {
+    private void frame(GuiGraphicsExtractor g, Component title, int room) {
         int x = ox(), y = oy(), w = ow(), h = oh();
         g.fill(x - 2, y - 2, x + w + 2, y + h + 2, 0xF00C0E11);
         g.fill(x, y, x + w, y + h, 0xFF1A1E25);
-        g.renderOutline(x, y, w, h, 0xFF3FD3FF);
+        g.outline(x, y, w, h, 0xFF3FD3FF);
         g.fill(x, y, x + w, y + 13, 0xFF232830);
-        g.drawString(font, font.plainSubstrByWidth(title.getString(), w - room), x + 5, y + 3, TEXT, false);
+        g.text(font, font.plainSubstrByWidth(title.getString(), w - room), x + 5, y + 3, TEXT, false);
     }
 
-    private void scrollbar(GuiGraphics g, int x, int y, int rows, int rowH, int total) {
+    private void scrollbar(GuiGraphicsExtractor g, int x, int y, int rows, int rowH, int total) {
         int max = total - rows;
         if (max <= 0) return;
         int trackH = rows * rowH, thumb = Math.max(8, trackH * rows / total);
@@ -250,16 +250,16 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
     }
 
     /** A flat text button inside an overlay header. */
-    private void chip(GuiGraphics g, int x, int y, int w, Component label, boolean on, int mx, int my) {
+    private void chip(GuiGraphicsExtractor g, int x, int y, int w, Component label, boolean on, int mx, int my) {
         boolean hover = in(mx, my, x, y, w, 11);
         g.fill(x, y, x + w, y + 11, on ? 0xFF1F7A8C : hover ? 0xFF2F3640 : 0xFF2A2F37);
-        g.renderOutline(x, y, w, 11, 0xFF3A424C);
-        g.drawCenteredString(font, label, x + w / 2, y + 2, TEXT);
+        g.outline(x, y, w, 11, 0xFF3A424C);
+        g.centeredText(font, label, x + w / 2, y + 2, TEXT);
     }
 
     // ---- tag / component picker ---------------------------------------------------
 
-    private void renderPicker(GuiGraphics g, int mouseX, int mouseY) {
+    private void renderPicker(GuiGraphicsExtractor g, int mouseX, int mouseY) {
         int x = ox(), y = oy();
         frame(g, Component.translatable(picker == Picker.TAG ? "gui.omnilogistics.pick_tag" : "gui.omnilogistics.pick_components"));
         List<String> opts = options();
@@ -267,7 +267,7 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
             ? ComponentPredicateEngine.componentInfos(menu.spec().ref()) : List.of();
         hoverValue = null;
         if (opts.isEmpty()) {
-            g.drawString(font, Component.translatable("gui.omnilogistics.pick_empty"), x + 5, y + 20, MUTED, false);
+            g.text(font, Component.translatable("gui.omnilogistics.pick_empty"), x + 5, y + 20, MUTED, false);
             return;
         }
         cursor = Math.min(cursor, opts.size() - 1);
@@ -280,26 +280,26 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
             boolean on = selected(opt);
             if (on) g.fill(x + 2, ry, x + PICK_W - 7, ry + ROW_H, 0xFF1F7A8C);
             else if (hover) g.fill(x + 2, ry, x + PICK_W - 7, ry + ROW_H, 0xFF2A2F37);
-            if (idx == cursor) g.renderOutline(x + 2, ry, PICK_W - 9, ROW_H, 0xFF3FD3FF);
+            if (idx == cursor) g.outline(x + 2, ry, PICK_W - 9, ROW_H, 0xFF3FD3FF);
             ComponentPredicateEngine.ComponentInfo info = picker == Picker.COMPONENT && idx < infos.size() ? infos.get(idx) : null;
             String label = (on ? "✓ " : "  ") + (info != null && info.patched() ? "* " : "") + opt;
             int labelW = Math.min(font.width(label), PICK_W - 22);
-            g.drawString(font, font.plainSubstrByWidth(label, labelW), x + 5, ry + 2, on ? 0xFFFFFF : TEXT, false);
+            g.text(font, font.plainSubstrByWidth(label, labelW), x + 5, ry + 2, on ? 0xFFFFFFFF : TEXT, false);
             if (info != null) {
                 int vx = x + 5 + labelW + 6, vw = x + PICK_W - 8 - vx;
-                if (vw > 20) g.drawString(font, font.plainSubstrByWidth(info.value(), vw), vx, ry + 2, MUTED, false);
+                if (vw > 20) g.text(font, font.plainSubstrByWidth(info.value(), vw), vx, ry + 2, MUTED, false);
                 if (hover) hoverValue = info;
             }
         }
         scrollbar(g, x + PICK_W - 5, y + 15, ROWS, ROW_H, opts.size());
-        g.drawString(font, Component.translatable("gui.omnilogistics.pick_hint"), x + 5, y + PICK_H - 10, MUTED, false);
+        g.text(font, Component.translatable("gui.omnilogistics.pick_hint"), x + 5, y + PICK_H - 10, MUTED, false);
         if (hoverValue != null) {
             List<Component> lines = new ArrayList<>();
             lines.add(Component.literal(hoverValue.key()).withStyle(net.minecraft.ChatFormatting.AQUA));
             if (hoverValue.patched()) lines.add(Component.translatable("gui.omnilogistics.component_patched").withStyle(net.minecraft.ChatFormatting.GRAY));
             String v = hoverValue.value();
             for (int i = 0; i < v.length() && i < 600; i += 60) lines.add(Component.literal(v.substring(i, Math.min(v.length(), i + 60))));
-            g.renderComponentTooltip(font, lines, mouseX, mouseY);
+            g.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
         }
     }
 
@@ -308,7 +308,7 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
     private int rowY(int i) { return oy() + 16 + i * RULE_H; }
     private int headerChip(int slot) { return ox() + NBT_W - 16 - slot * 52; }   // 0 = close, 1 = +Pick, 2 = ALL/ANY
 
-    private void renderRules(GuiGraphics g, int mx, int my) {
+    private void renderRules(GuiGraphicsExtractor g, int mx, int my) {
         int x = ox(), y = oy();
         frame(g, Component.translatable("gui.omnilogistics.nbt.title"));
         chip(g, headerChip(2) + 2, y + 1, 48, Component.translatable(nbtAny() ? "gui.omnilogistics.nbt.any" : "gui.omnilogistics.nbt.all"), false, mx, my);
@@ -320,7 +320,7 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
         if (rules.isEmpty()) {
             int ty = y + 22;
             for (var line : font.split(Component.translatable("gui.omnilogistics.nbt.empty"), NBT_W - 12)) {
-                g.drawString(font, line, x + 6, ty, MUTED, false);
+                g.text(font, line, x + 6, ty, MUTED, false);
                 ty += 10;
             }
         }
@@ -332,21 +332,21 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
             if (in(mx, my, x, ry, NBT_W, RULE_H)) g.fill(x + 2, ry, x + NBT_W - 2, ry + RULE_H, 0xFF232830);
             // enabled box
             g.fill(x + 4, ry + 1, x + 13, ry + 10, 0xFF0C0E11);
-            g.renderOutline(x + 4, ry + 1, 9, 9, 0xFF3A424C);
+            g.outline(x + 4, ry + 1, 9, 9, 0xFF3A424C);
             if (r.enabled()) g.fill(x + 6, ry + 3, x + 11, ry + 8, 0xFF3FD3FF);
             int color = r.enabled() ? TEXT : MUTED;
             // path
             String path = NbtRule.pretty(r.path());
             int pw = COL_OP - COL_PATH - 4;
             String shown = font.width(path) <= pw ? path : "…" + tail(path, pw - font.width("…"));
-            g.drawString(font, shown, x + COL_PATH, ry + 2, r.hasListStep() ? 0xFFB7E3F0 : color, false);
+            g.text(font, shown, x + COL_PATH, ry + 2, r.hasListStep() ? 0xFFB7E3F0 : color, false);
             if (in(mx, my, x + COL_PATH, ry, pw, RULE_H))
                 hoverTip = Component.literal(String.join(" / ", r.path())).append(r.hasListStep()
                     ? Component.literal("\n").append(Component.translatable("tooltip.omnilogistics.nbt.any_index")) : Component.empty());
             // operator
             boolean opHover = in(mx, my, x + COL_OP, ry, COL_VALUE - COL_OP - 2, RULE_H);
             g.fill(x + COL_OP, ry + 1, x + COL_VALUE - 2, ry + RULE_H - 1, opHover ? 0xFF2F3640 : 0xFF12161B);
-            g.drawCenteredString(font, Component.translatable("gui.omnilogistics.nbt.op." + r.op().key()),
+            g.centeredText(font, Component.translatable("gui.omnilogistics.nbt.op." + r.op().key()),
                 x + (COL_OP + COL_VALUE - 2) / 2, ry + 2, r.enabled() ? 0xFFFFC04A : MUTED);
             if (opHover) hoverTip = Component.translatable("tooltip.omnilogistics.nbt.op");
             // value
@@ -354,23 +354,23 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
                 boolean vHover = in(mx, my, x + COL_VALUE, ry, COL_DEL - COL_VALUE - 3, RULE_H);
                 g.fill(x + COL_VALUE, ry + 1, x + COL_DEL - 3, ry + RULE_H - 1, vHover && r.op().takesValue() ? 0xFF2F3640 : 0xFF12161B);
                 if (r.op().takesValue())
-                    g.drawString(font, font.plainSubstrByWidth(r.value(), COL_DEL - COL_VALUE - 7), x + COL_VALUE + 2, ry + 2, color, false);
+                    g.text(font, font.plainSubstrByWidth(r.value(), COL_DEL - COL_VALUE - 7), x + COL_VALUE + 2, ry + 2, color, false);
                 if (vHover && r.op().takesValue()) hoverTip = Component.literal(r.value());
             }
             // delete
             boolean delHover = in(mx, my, x + COL_DEL, ry, 10, RULE_H);
-            g.drawString(font, "×", x + COL_DEL + 2, ry + 2, delHover ? 0xFFFF6B6B : MUTED, false);
+            g.text(font, "×", x + COL_DEL + 2, ry + 2, delHover ? 0xFFFF6B6B : MUTED, false);
         }
         scrollbar(g, x + NBT_W - 4, y + 16, RULE_ROWS, RULE_H, rules.size());
         if (editing >= scroll && editing < scroll + RULE_ROWS) {
             int ry = rowY(editing - scroll);
             g.fill(x + COL_VALUE, ry + 1, x + COL_DEL - 3, ry + RULE_H - 1, 0xFF0C0E11);
-            g.renderOutline(x + COL_VALUE, ry + 1, COL_DEL - 3 - COL_VALUE, RULE_H - 2, 0xFF3FD3FF);
+            g.outline(x + COL_VALUE, ry + 1, COL_DEL - 3 - COL_VALUE, RULE_H - 2, 0xFF3FD3FF);
             valueBox.setX(x + COL_VALUE + 2);
             valueBox.setY(ry + 2);
-            valueBox.render(g, mx, my, 0);
+            valueBox.extractRenderState(g, mx, my, 0);
         }
-        g.drawString(font, font.plainSubstrByWidth(Component.translatable("gui.omnilogistics.nbt.hint").getString(), NBT_W - 10),
+        g.text(font, font.plainSubstrByWidth(Component.translatable("gui.omnilogistics.nbt.hint").getString(), NBT_W - 10),
             x + 5, y + NBT_H - 10, MUTED, false);
     }
 
@@ -380,13 +380,13 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
         return s.substring(i);
     }
 
-    private void renderNbtPick(GuiGraphics g, int mx, int my) {
+    private void renderNbtPick(GuiGraphicsExtractor g, int mx, int my) {
         int x = ox(), y = oy();
         frame(g, Component.translatable("gui.omnilogistics.nbt.pick_title"));
         chip(g, headerChip(0) + 2, y + 1, 11, Component.literal("‹"), false, mx, my);
         List<NbtRule.Leaf> all = leaves();
         if (all.isEmpty()) {
-            g.drawString(font, Component.translatable("gui.omnilogistics.pick_empty"), x + 5, y + 20, MUTED, false);
+            g.text(font, Component.translatable("gui.omnilogistics.pick_empty"), x + 5, y + 20, MUTED, false);
             return;
         }
         cursor = Math.min(cursor, all.size() - 1);
@@ -397,22 +397,22 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
             int ry = y + 15 + i * ROW_H;
             boolean hover = in(mx, my, x, ry, NBT_W, ROW_H);
             if (hover) g.fill(x + 2, ry, x + NBT_W - 7, ry + ROW_H, 0xFF2A2F37);
-            if (idx == cursor) g.renderOutline(x + 2, ry, NBT_W - 9, ROW_H, 0xFF3FD3FF);
+            if (idx == cursor) g.outline(x + 2, ry, NBT_W - 9, ROW_H, 0xFF3FD3FF);
             // the end of a path is the part that says what it is, so a long one loses its beginning
             String path = NbtRule.pretty(leaf.path());
             int room = 150;
             if (font.width(path) > room) path = "…" + tail(path, room - font.width("…"));
             int pw = font.width(path);
-            if (leaf.patched()) g.drawString(font, "*", x + 4, ry + 2, 0xFF3FD3FF, false);
-            g.drawString(font, path, x + 10, ry + 2, leaf.patched() ? TEXT : MUTED, false);
+            if (leaf.patched()) g.text(font, "*", x + 4, ry + 2, 0xFF3FD3FF, false);
+            g.text(font, path, x + 10, ry + 2, leaf.patched() ? TEXT : MUTED, false);
             pw += 5;
-            g.drawString(font, "=", x + 8 + pw, ry + 2, MUTED, false);
+            g.text(font, "=", x + 8 + pw, ry + 2, MUTED, false);
             int vx = x + 16 + pw, vw = x + NBT_W - 10 - vx;
-            if (vw > 12) g.drawString(font, font.plainSubstrByWidth(leaf.value(), vw), vx, ry + 2, 0xFFFFC04A, false);
+            if (vw > 12) g.text(font, font.plainSubstrByWidth(leaf.value(), vw), vx, ry + 2, 0xFFFFC04A, false);
             if (hover) hoverTip = Component.literal(String.join(" / ", leaf.path())).append("\n").append(leaf.value());
         }
         scrollbar(g, x + NBT_W - 5, y + 15, PICK_ROWS, ROW_H, all.size());
-        g.drawString(font, font.plainSubstrByWidth(Component.translatable("gui.omnilogistics.nbt.pick_hint").getString(), NBT_W - 10),
+        g.text(font, font.plainSubstrByWidth(Component.translatable("gui.omnilogistics.nbt.pick_hint").getString(), NBT_W - 10),
             x + 5, y + NBT_H - 10, MUTED, false);
     }
 
@@ -458,8 +458,10 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
     // ---- input ----------------------------------------------------------------------
 
     @Override
-    public boolean mouseClicked(double mx, double my, int button) {
-        if (picker == Picker.NONE) return super.mouseClicked(mx, my, button);
+    public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent e, boolean doubleClick) {
+        if (picker == Picker.NONE) return super.mouseClicked(e, doubleClick);
+        double mx = e.x(), my = e.y();
+        int button = e.button();
         int x = ox(), y = oy();
         if (!in(mx, my, x, y, ow(), oh())) {
             commitValue();
@@ -493,12 +495,13 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
     }
 
     @Override
-    public boolean keyPressed(int key, int scan, int mods) {
-        if (picker == Picker.NONE) return super.keyPressed(key, scan, mods);
+    public boolean keyPressed(net.minecraft.client.input.KeyEvent e) {
+        if (picker == Picker.NONE) return super.keyPressed(e);
+        int key = e.key();
         if (editing >= 0) {
             if (key == KEY_ENTER || key == KEY_KP_ENTER) commitValue();
             else if (key == KEY_ESC) { editing = -1; valueBox.setFocused(false); }
-            else valueBox.keyPressed(key, scan, mods);
+            else valueBox.keyPressed(e);
             return true;   // nothing typed into a value may reach the inventory keys
         }
         switch (key) {
@@ -512,15 +515,15 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
     }
 
     @Override
-    public boolean charTyped(char c, int mods) {
-        if (editing >= 0) return valueBox.charTyped(c, mods);
-        return picker == Picker.NONE ? super.charTyped(c, mods) : true;
+    public boolean charTyped(net.minecraft.client.input.CharacterEvent e) {
+        if (editing >= 0) return valueBox.charTyped(e);
+        return picker == Picker.NONE ? super.charTyped(e) : true;
     }
 
     // ---- rendering --------------------------------------------------------------
 
     @Override
-    public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
         FilterSpec s = menu.spec();
         FilterLayout layout = menu.layout;
         for (int i = 0; i < modeButtons.length; i++) {
@@ -542,35 +545,33 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
         nbtButton.on = isNbt() || !s.rules().isEmpty();
         nbtButton.setMessage(Component.translatable("gui.omnilogistics.nbt_n", s.rules().size()));
         // with an overlay open nothing underneath is hovered, so no button or slot tooltip bleeds through it
-        super.render(g, picker == Picker.NONE ? mouseX : -1000, picker == Picker.NONE ? mouseY : -1000, partialTick);
+        super.extractRenderState(g, picker == Picker.NONE ? mouseX : -1000, picker == Picker.NONE ? mouseY : -1000, partialTick);
         if (picker != Picker.NONE) {   // above slot items (z 150) and their count text (z 200), like a tooltip
             hoverTip = null;
-            g.pose().pushPose();
-            g.pose().translate(0, 0, 400);
+            g.nextStratum();   // above the slots and their items, like a tooltip
             switch (picker) {
                 case NBT -> renderRules(g, mouseX, mouseY);
                 case NBT_PICK -> renderNbtPick(g, mouseX, mouseY);
                 default -> renderPicker(g, mouseX, mouseY);
             }
-            if (hoverTip != null) g.renderTooltip(font, font.split(hoverTip, 220), mouseX, mouseY);
-            g.pose().popPose();
+            if (hoverTip != null) g.setTooltipForNextFrame(font, font.split(hoverTip, 220), mouseX, mouseY);
         }
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics g, int mouseX, int mouseY) {
-        if (picker == Picker.NONE) super.renderTooltip(g, mouseX, mouseY);
+    protected void extractTooltip(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+        if (picker == Picker.NONE) super.extractTooltip(g, mouseX, mouseY);
     }
 
     @Override
-    protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
-        super.renderBg(g, partialTick, mouseX, mouseY);
+    public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(g, mouseX, mouseY, partialTick);
         int gx = leftPos + FilterMenu.gridX(menu.refs), gy = topPos + FilterMenu.GRID_Y;
         for (int i = 0; i < menu.refs; i++) slotFrame(g, gx + (i % 8) * 18, gy + (i / 8) * 18);
     }
 
     /** Inset reference slot, same look as the generated sheets; drawn in code so one panel fits every capacity. */
-    private static void slotFrame(GuiGraphics g, int x, int y) {
+    private static void slotFrame(GuiGraphicsExtractor g, int x, int y) {
         g.fill(x - 1, y - 1, x + 17, y + 17, 0xFF0A0D11);
         g.fill(x, y, x + 16, y + 16, 0xFF12161B);
         g.fill(x, y, x + 16, y + 1, 0xFF05070A);
@@ -580,9 +581,9 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
     }
 
     @Override
-    protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
-        super.renderLabels(g, mouseX, mouseY);
-        g.drawString(font, Component.translatable("gui.omnilogistics.filter"), 8, 26, MUTED, false);   // short: the grid starts at x=56
+    protected void extractLabels(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+        super.extractLabels(g, mouseX, mouseY);
+        g.text(font, Component.translatable("gui.omnilogistics.filter"), 8, 26, MUTED, false);   // short: the grid starts at x=56
     }
 
     @Override

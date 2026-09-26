@@ -17,7 +17,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
@@ -141,12 +141,12 @@ public record NbtRule(List<String> path, Op op, String value, boolean enabled) {
         if (depth == path.size()) { out.add(at); return; }
         String key = path.get(depth);
         if (ANY.equals(key)) {
-            if (at instanceof CompoundTag c) for (String k : c.getAllKeys()) collect(c.get(k), depth + 1, out);
-            else if (at instanceof CollectionTag<?> l) for (Tag t : l) collect(t, depth + 1, out);
+            if (at instanceof CompoundTag c) for (String k : c.keySet()) collect(c.get(k), depth + 1, out);
+            else if (at instanceof CollectionTag l) for (Tag t : l) collect(t, depth + 1, out);
         } else if (at instanceof CompoundTag c) {
             Tag next = c.get(key);
             if (next != null) collect(next, depth + 1, out);
-        } else if (at instanceof CollectionTag<?> l && isIndex(key)) {
+        } else if (at instanceof CollectionTag l && isIndex(key)) {
             int i = index(key);
             if (i >= 0 && i < l.size()) collect(l.get(i), depth + 1, out);
         }
@@ -158,13 +158,13 @@ public record NbtRule(List<String> path, Op op, String value, boolean enabled) {
             case NE -> !same(have, want);
             case GT, GE, LT, LE -> {
                 if (!(have instanceof NumericTag h) || !(want instanceof NumericTag w)) yield false;
-                int c = Double.compare(h.getAsDouble(), w.getAsDouble());
+                int c = Double.compare(h.asDouble().orElse(0d), w.asDouble().orElse(0d));
                 yield op == Op.GT ? c > 0 : op == Op.GE ? c >= 0 : op == Op.LT ? c < 0 : c <= 0;
             }
             case CONTAINS -> {
                 if (have instanceof StringTag s)
-                    yield s.getAsString().toLowerCase(Locale.ROOT).contains(text(want).toLowerCase(Locale.ROOT));
-                if (have instanceof CollectionTag<?> l) {
+                    yield s.value().toLowerCase(Locale.ROOT).contains(text(want).toLowerCase(Locale.ROOT));
+                if (have instanceof CollectionTag l) {
                     for (Tag t : l) if (same(t, want)) yield true;
                     yield false;
                 }
@@ -176,13 +176,13 @@ public record NbtRule(List<String> path, Op op, String value, boolean enabled) {
 
     /** Numbers compare by value whatever their NBT width (5b, 5, 5.0d are all 5); everything else by content. */
     static boolean same(Tag a, Tag b) {
-        if (a instanceof NumericTag x && b instanceof NumericTag y) return Double.compare(x.getAsDouble(), y.getAsDouble()) == 0;
+        if (a instanceof NumericTag x && b instanceof NumericTag y) return Double.compare(x.asDouble().orElse(0d), y.asDouble().orElse(0d)) == 0;
         if (a instanceof StringTag || b instanceof StringTag) return text(a).equals(text(b));
         return a.equals(b);
     }
 
     private static String text(Tag t) {
-        return t instanceof StringTag s ? s.getAsString() : t.toString();
+        return t instanceof StringTag s ? s.value() : t.toString();
     }
 
     /** SNBT, or a plain string when it is not SNBT (so {@code diamond} works without quotes). */
@@ -190,7 +190,7 @@ public record NbtRule(List<String> path, Op op, String value, boolean enabled) {
         String s = snbt.trim();
         if (s.isEmpty()) return StringTag.valueOf("");
         try {
-            Tag t = TagParser.parseTag("{v:" + s + "}").get("v");
+            Tag t = TagParser.parseCompoundFully("{v:" + s + "}").get("v");
             return t == null ? StringTag.valueOf(s) : t;
         } catch (CommandSyntaxException e) {
             return StringTag.valueOf(s);
@@ -212,7 +212,7 @@ public record NbtRule(List<String> path, Op op, String value, boolean enabled) {
 
     private static <T> void encode(CompoundTag out, TypedDataComponent<T> c, DynamicOps<Tag> ops) {
         Codec<T> codec = c.type().codec();
-        ResourceLocation id = BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(c.type());
+        Identifier id = BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(c.type());
         if (codec == null || id == null) return;
         try {
             codec.encodeStart(ops, c.value()).result().ifPresent(t -> out.put(id.toString(), t));
@@ -227,7 +227,7 @@ public record NbtRule(List<String> path, Op op, String value, boolean enabled) {
     public static List<Leaf> leaves(ItemStack stack, @Nullable HolderLookup.Provider regs) {
         CompoundTag data = components(stack, regs);
         var patch = stack.getComponentsPatch();
-        List<String> keys = new ArrayList<>(data.getAllKeys());
+        List<String> keys = new ArrayList<>(data.keySet());
         keys.sort((a, b) -> {
             boolean pa = patched(patch, a), pb = patched(patch, b);
             return pa != pb ? (pa ? -1 : 1) : a.compareTo(b);
@@ -238,18 +238,18 @@ public record NbtRule(List<String> path, Op op, String value, boolean enabled) {
     }
 
     private static boolean patched(net.minecraft.core.component.DataComponentPatch patch, String key) {
-        ResourceLocation id = ResourceLocation.tryParse(key);
-        var type = id == null ? null : BuiltInRegistries.DATA_COMPONENT_TYPE.get(id);
-        return type != null && patch.get(type) != null;
+        Identifier id = Identifier.tryParse(key);
+        var type = id == null ? null : BuiltInRegistries.DATA_COMPONENT_TYPE.getValue(id);
+        return type != null && patch.getPatch(type) != null;
     }
 
     private static void walk(Tag t, List<String> path, boolean patched, List<Leaf> out) {
         if (out.size() >= MAX_LEAVES) return;
         if (path.size() < MAX_DEPTH && t instanceof CompoundTag c && !c.isEmpty()) {
-            List<String> keys = new ArrayList<>(c.getAllKeys());
+            List<String> keys = new ArrayList<>(c.keySet());
             keys.sort(null);
             for (String k : keys) step(c.get(k), path, k, patched, out);
-        } else if (path.size() < MAX_DEPTH && t instanceof CollectionTag<?> l && !l.isEmpty()) {
+        } else if (path.size() < MAX_DEPTH && t instanceof CollectionTag l && !l.isEmpty()) {
             for (int i = 0; i < l.size(); i++) step(l.get(i), path, "[" + i + "]", patched, out);
         } else {
             out.add(new Leaf(List.copyOf(path), t.toString(), patched));

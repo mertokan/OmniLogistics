@@ -1,5 +1,6 @@
 package com.mertokan.omnilogistics.monitor;
 
+import com.mertokan.omnilogistics.core.Caps;
 import com.mertokan.omnilogistics.OmniLogistics;
 import com.mertokan.omnilogistics.core.InfoLines;
 import com.mertokan.omnilogistics.core.OmniConfig;
@@ -37,7 +38,7 @@ public class MonitorBlockEntity extends TickingBlockEntity implements InfoLines 
     public final ItemStackHandler card = new ItemStackHandler(1) {
         @Override public boolean isItemValid(int i, ItemStack s) { return LogisticsCardItem.isFilterCard(s); }
         @Override public int getSlotLimit(int i) { return 1; }
-        @Override protected void onContentsChanged(int i) { if (level != null && !level.isClientSide) sync(); else setChanged(); }
+        @Override protected void onContentsChanged(int i) { if (level != null && !level.isClientSide()) sync(); else setChanged(); }
     };
     /** Everything the client draws; refreshed on the server, sent whenever it changes. */
     public String title = "";
@@ -90,19 +91,19 @@ public class MonitorBlockEntity extends TickingBlockEntity implements InfoLines 
             return;
         }
         title = tl.getBlockState(target).getBlock().getName().getString();
-        IEnergyStorage e = tl.getCapability(Capabilities.EnergyStorage.BLOCK, target, null);
+        IEnergyStorage e = Caps.energy(tl, target, null);
         if (e != null) {
             energy = e.getEnergyStored();
             energyMax = Math.max(1, e.getMaxEnergyStored());
         }
-        IFluidHandler f = tl.getCapability(Capabilities.FluidHandler.BLOCK, target, null);
+        IFluidHandler f = Caps.fluids(tl, target, null);
         if (f != null && f.getTanks() > 0) {
             FluidStack fs = f.getFluidInTank(0);
             fluid = fs.getAmount();
             fluidMax = Math.max(1, f.getTankCapacity(0));
             fluidName = fs.isEmpty() ? "" : fs.getHoverName().getString();
         }
-        IItemHandler h = tl.getCapability(Capabilities.ItemHandler.BLOCK, target, null);
+        IItemHandler h = Caps.items(tl, target, null);
         if (h != null) {
             // one line per KIND, not per slot: a chest of 27 stacks of cobble is one line saying 1728
             List<ItemStack> kinds = new ArrayList<>();
@@ -137,34 +138,30 @@ public class MonitorBlockEntity extends TickingBlockEntity implements InfoLines 
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.saveAdditional(tag, regs);
-        tag.put("Card", card.serializeNBT(regs));
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
+        super.saveAdditional(tag);
+        card.serialize(tag.child("Card"));
         tag.putString("Title", title);
         tag.putInt("E", energy);
         tag.putInt("EMax", energyMax);
         tag.putInt("F", fluid);
         tag.putInt("FMax", fluidMax);
         tag.putString("FName", fluidName);
-        ListTag list = new ListTag();
-        for (ItemStack s : items) list.add(s.save(regs));
-        tag.put("Shown", list);
+        tag.store("Shown", ItemStack.OPTIONAL_CODEC.listOf(), items);
         tag.putInt("More", moreKinds);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.loadAdditional(tag, regs);
-        if (tag.contains("Card")) card.deserializeNBT(regs, tag.getCompound("Card"));
-        title = tag.getString("Title");
-        energy = tag.getInt("E");
-        energyMax = tag.getInt("EMax");
-        fluid = tag.getInt("F");
-        fluidMax = tag.getInt("FMax");
-        fluidName = tag.getString("FName");
-        List<ItemStack> out = new ArrayList<>();
-        for (Tag t : tag.getList("Shown", Tag.TAG_COMPOUND)) out.add(ItemStack.parseOptional(regs, (CompoundTag) t));
-        items = List.copyOf(out);
-        moreKinds = tag.getInt("More");
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
+        super.loadAdditional(tag);
+        card.deserialize(tag.childOrEmpty("Card"));
+        title = tag.getStringOr("Title", "");
+        energy = tag.getIntOr("E", 0);
+        energyMax = tag.getIntOr("EMax", 0);
+        fluid = tag.getIntOr("F", 0);
+        fluidMax = tag.getIntOr("FMax", 0);
+        fluidName = tag.getStringOr("FName", "");
+        items = List.copyOf(tag.read("Shown", ItemStack.OPTIONAL_CODEC.listOf()).orElse(List.of()));
+        moreKinds = tag.getIntOr("More", 0);
     }
 }

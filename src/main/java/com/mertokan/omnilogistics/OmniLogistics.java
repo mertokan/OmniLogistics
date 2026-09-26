@@ -1,5 +1,6 @@
 package com.mertokan.omnilogistics;
 
+import com.mertokan.omnilogistics.core.Caps;
 import com.mojang.serialization.Codec;
 import com.mertokan.omnilogistics.core.FilterConfigPayload;
 import com.mertokan.omnilogistics.core.FilterMenu;
@@ -47,7 +48,6 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -95,7 +95,7 @@ public class OmniLogistics {
             PIPE_ITEMS.put(type, new EnumMap<>(PipeTier.class));
             for (PipeTier tier : PipeTier.values()) {
                 String name = pipeId(type, tier);
-                DeferredBlock<SmartPipeBlock> block = BLOCKS.registerBlock(name, p -> new SmartPipeBlock(p, type, tier), machine().noOcclusion());
+                DeferredBlock<SmartPipeBlock> block = BLOCKS.registerBlock(name, p -> new SmartPipeBlock(p, type, tier), () -> machine().noOcclusion());
                 PIPES.get(type).put(tier, block);
                 PIPE_ITEMS.get(type).put(tier, ITEMS.registerSimpleBlockItem(block));
             }
@@ -115,18 +115,18 @@ public class OmniLogistics {
     }
 
     public static final Supplier<BlockEntityType<PipeBlockEntity>> ITEM_PIPE_BE = BLOCK_ENTITIES.register("item_pipe",
-        () -> BlockEntityType.Builder.of(PipeBlockEntity::new, pipesOf(PipeType.ITEM)).build(null));
+        () -> new BlockEntityType<>(PipeBlockEntity::new, pipesOf(PipeType.ITEM)));
     public static final Supplier<BlockEntityType<EnergyCableBlockEntity>> ENERGY_CABLE_BE = BLOCK_ENTITIES.register("energy_cable",
-        () -> BlockEntityType.Builder.of(EnergyCableBlockEntity::new, pipesOf(PipeType.ENERGY)).build(null));
+        () -> new BlockEntityType<>(EnergyCableBlockEntity::new, pipesOf(PipeType.ENERGY)));
     public static final Supplier<BlockEntityType<FluidPipeBlockEntity>> FLUID_PIPE_BE = BLOCK_ENTITIES.register("fluid_pipe",
-        () -> BlockEntityType.Builder.of(FluidPipeBlockEntity::new, pipesOf(PipeType.FLUID)).build(null));
+        () -> new BlockEntityType<>(FluidPipeBlockEntity::new, pipesOf(PipeType.FLUID)));
 
     // ---- machines ---------------------------------------------------------------------------
-    public static final DeferredBlock<ExposerBlock> EXPOSER = BLOCKS.registerBlock("inventory_exposer", ExposerBlock::new, machine());
-    public static final DeferredBlock<RouterBlock> ROUTER = BLOCKS.registerBlock("wireless_router", RouterBlock::new, machine());
-    public static final DeferredBlock<ExtractorBlock> EXTRACTOR = BLOCKS.registerBlock("component_extractor", ExtractorBlock::new, machine());
-    public static final DeferredBlock<DistributorBlock> DISTRIBUTOR = BLOCKS.registerBlock("batch_distributor", DistributorBlock::new, machine());
-    public static final DeferredBlock<MonitorBlock> MONITOR = BLOCKS.registerBlock("machine_monitor", MonitorBlock::new, machine());
+    public static final DeferredBlock<ExposerBlock> EXPOSER = BLOCKS.registerBlock("inventory_exposer", ExposerBlock::new, OmniLogistics::machine);
+    public static final DeferredBlock<RouterBlock> ROUTER = BLOCKS.registerBlock("wireless_router", RouterBlock::new, OmniLogistics::machine);
+    public static final DeferredBlock<ExtractorBlock> EXTRACTOR = BLOCKS.registerBlock("component_extractor", ExtractorBlock::new, OmniLogistics::machine);
+    public static final DeferredBlock<DistributorBlock> DISTRIBUTOR = BLOCKS.registerBlock("batch_distributor", DistributorBlock::new, OmniLogistics::machine);
+    public static final DeferredBlock<MonitorBlock> MONITOR = BLOCKS.registerBlock("machine_monitor", MonitorBlock::new, OmniLogistics::machine);
 
     public static final DeferredItem<BlockItem> EXPOSER_ITEM = ITEMS.registerSimpleBlockItem(EXPOSER);
     public static final DeferredItem<BlockItem> ROUTER_ITEM = ITEMS.registerSimpleBlockItem(ROUTER);
@@ -135,36 +135,36 @@ public class OmniLogistics {
     public static final DeferredItem<BlockItem> MONITOR_ITEM = ITEMS.registerSimpleBlockItem(MONITOR);
 
     public static final Supplier<BlockEntityType<ExposerBlockEntity>> EXPOSER_BE = BLOCK_ENTITIES.register("inventory_exposer",
-        () -> BlockEntityType.Builder.of(ExposerBlockEntity::new, EXPOSER.get()).build(null));
+        () -> new BlockEntityType<>(ExposerBlockEntity::new, EXPOSER.get()));
     public static final Supplier<BlockEntityType<RouterBlockEntity>> ROUTER_BE = BLOCK_ENTITIES.register("wireless_router",
-        () -> BlockEntityType.Builder.of(RouterBlockEntity::new, ROUTER.get()).build(null));
+        () -> new BlockEntityType<>(RouterBlockEntity::new, ROUTER.get()));
     public static final Supplier<BlockEntityType<ExtractorBlockEntity>> EXTRACTOR_BE = BLOCK_ENTITIES.register("component_extractor",
-        () -> BlockEntityType.Builder.of(ExtractorBlockEntity::new, EXTRACTOR.get()).build(null));
+        () -> new BlockEntityType<>(ExtractorBlockEntity::new, EXTRACTOR.get()));
     public static final Supplier<BlockEntityType<DistributorBlockEntity>> DISTRIBUTOR_BE = BLOCK_ENTITIES.register("batch_distributor",
-        () -> BlockEntityType.Builder.of(DistributorBlockEntity::new, DISTRIBUTOR.get()).build(null));
+        () -> new BlockEntityType<>(DistributorBlockEntity::new, DISTRIBUTOR.get()));
     public static final Supplier<BlockEntityType<MonitorBlockEntity>> MONITOR_BE = BLOCK_ENTITIES.register("machine_monitor",
-        () -> BlockEntityType.Builder.of(MonitorBlockEntity::new, MONITOR.get()).build(null));
+        () -> new BlockEntityType<>(MonitorBlockEntity::new, MONITOR.get()));
 
     // ---- void miner: 4 tiers, one block entity type ------------------------------------------
     public static final Map<MinerTier, DeferredBlock<VoidMinerBlock>> MINERS = new EnumMap<>(MinerTier.class);
     public static final Map<MinerTier, DeferredItem<BlockItem>> MINER_ITEMS = new EnumMap<>(MinerTier.class);
     static {
         for (MinerTier tier : MinerTier.values()) {
-            DeferredBlock<VoidMinerBlock> block = BLOCKS.registerBlock(tier.getSerializedName() + "_void_miner", p -> new VoidMinerBlock(p, tier), machine());
+            DeferredBlock<VoidMinerBlock> block = BLOCKS.registerBlock(tier.getSerializedName() + "_void_miner", p -> new VoidMinerBlock(p, tier), OmniLogistics::machine);
             MINERS.put(tier, block);
             MINER_ITEMS.put(tier, ITEMS.registerSimpleBlockItem(block));
         }
     }
     public static final Supplier<BlockEntityType<VoidMinerBlockEntity>> MINER_BE = BLOCK_ENTITIES.register("void_miner",
-        () -> BlockEntityType.Builder.of(VoidMinerBlockEntity::new, MINERS.values().stream().map(DeferredBlock::get).toArray(Block[]::new)).build(null));
+        () -> new BlockEntityType<>(VoidMinerBlockEntity::new, MINERS.values().stream().map(DeferredBlock::get).toArray(Block[]::new)));
 
     // ---- items --------------------------------------------------------------------------------
-    public static final DeferredItem<Item> WRENCH = ITEMS.registerSimpleItem("wrench", new Item.Properties().stacksTo(1));
+    public static final DeferredItem<Item> WRENCH = ITEMS.registerSimpleItem("wrench", p -> p.stacksTo(1));
     public static final Map<CardKind, DeferredItem<LogisticsCardItem>> CARDS = new EnumMap<>(CardKind.class);
     static {
         for (CardKind kind : CardKind.values())
             CARDS.put(kind, ITEMS.registerItem(kind == CardKind.ITEM ? "logistics_card" : kind.id(),
-                p -> new LogisticsCardItem(p, kind, kind == CardKind.FLUID ? 4 : 1), new Item.Properties().stacksTo(1)));
+                p -> new LogisticsCardItem(p, kind, kind == CardKind.FLUID ? 4 : 1), q -> q.stacksTo(1)));
     }
     public static final DeferredItem<LogisticsCardItem> CARD = CARDS.get(CardKind.ITEM);
     /** Same card, more reference slots: 4 / 16 / 64 instead of 1. Everything that takes a Logistics Card takes these. */
@@ -172,21 +172,21 @@ public class OmniLogistics {
     static {
         for (var e : Map.of("advanced", 4, "elite", 16, "ultimate", 64).entrySet())
             MULTI_CARDS.put(e.getValue(), ITEMS.registerItem(e.getKey() + "_logistics_card",
-                p -> new LogisticsCardItem(p, CardKind.ITEM, e.getValue()), new Item.Properties().stacksTo(1)));
+                p -> new LogisticsCardItem(p, CardKind.ITEM, e.getValue()), q -> q.stacksTo(1)));
     }
     public static final DeferredItem<LogisticsCardItem> ENERGY_CARD = CARDS.get(CardKind.ENERGY);
-    public static final DeferredItem<Item> SPEED_UPGRADE = ITEMS.registerSimpleItem("speed_upgrade", new Item.Properties().stacksTo(3));
-    public static final DeferredItem<Item> CHUNK_UPGRADE = ITEMS.registerSimpleItem("chunk_upgrade", new Item.Properties().stacksTo(1));
+    public static final DeferredItem<Item> SPEED_UPGRADE = ITEMS.registerSimpleItem("speed_upgrade", p -> p.stacksTo(3));
+    public static final DeferredItem<Item> CHUNK_UPGRADE = ITEMS.registerSimpleItem("chunk_upgrade", p -> p.stacksTo(1));
     /** Chunk tickets the Chunk Loader Upgrade hands out; registered on the mod bus, so old tickets survive a restart. */
     public static final net.neoforged.neoforge.common.world.chunk.TicketController CHUNK_TICKETS =
-        new net.neoforged.neoforge.common.world.chunk.TicketController(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MODID, "router"));
-    public static final DeferredItem<Item> PARALLEL_UPGRADE = ITEMS.registerSimpleItem("parallel_upgrade", new Item.Properties().stacksTo(2));
-    public static final DeferredItem<Item> RANGE_UPGRADE = ITEMS.registerSimpleItem("range_upgrade", new Item.Properties().stacksTo(3));
-    public static final DeferredItem<Item> GEM_MODULE = ITEMS.registerSimpleItem("gem_module", new Item.Properties().stacksTo(1));
-    public static final DeferredItem<Item> FUSION_MODULE = ITEMS.registerSimpleItem("fusion_module", new Item.Properties().stacksTo(1));
+        new net.neoforged.neoforge.common.world.chunk.TicketController(net.minecraft.resources.Identifier.fromNamespaceAndPath(MODID, "router"));
+    public static final DeferredItem<Item> PARALLEL_UPGRADE = ITEMS.registerSimpleItem("parallel_upgrade", p -> p.stacksTo(2));
+    public static final DeferredItem<Item> RANGE_UPGRADE = ITEMS.registerSimpleItem("range_upgrade", p -> p.stacksTo(3));
+    public static final DeferredItem<Item> GEM_MODULE = ITEMS.registerSimpleItem("gem_module", p -> p.stacksTo(1));
+    public static final DeferredItem<Item> FUSION_MODULE = ITEMS.registerSimpleItem("fusion_module", p -> p.stacksTo(1));
 
     public static final Supplier<RecipeSerializer<CardUpgradeRecipe>> CARD_UPGRADE_RECIPE = RECIPES.register("card_upgrade",
-        () -> new SimpleCraftingRecipeSerializer<>(CardUpgradeRecipe::new));
+        () -> CardUpgradeRecipe.SERIALIZER);
 
     /** Recipe conditions, so the module flags can switch recipes off (see core/ModuleCondition). */
     public static final DeferredRegister<com.mojang.serialization.MapCodec<? extends net.neoforged.neoforge.common.conditions.ICondition>> CONDITIONS =
@@ -271,11 +271,7 @@ public class OmniLogistics {
         bus.addListener((net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent e) -> e.register(CHUNK_TICKETS));
         bus.addListener(this::registerPayloads);
         bus.addListener(this::registerCapabilities);
-        bus.addListener((RegisterGameTestsEvent e) -> {
-            e.register(PipeGameTests.class);
-            e.register(MachineGameTests.class);
-            e.register(MinerGameTests.class);
-        });
+        GameTests.register(bus);
     }
 
     private void registerPayloads(RegisterPayloadHandlersEvent e) {
@@ -288,16 +284,16 @@ public class OmniLogistics {
     }
 
     private void registerCapabilities(RegisterCapabilitiesEvent e) {
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ITEM_PIPE_BE.get(), PipeBlockEntity::handlerFor);
-        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ENERGY_CABLE_BE.get(), EnergyCableBlockEntity::handlerFor);
-        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, FLUID_PIPE_BE.get(), FluidPipeBlockEntity::handlerFor);
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, EXPOSER_BE.get(), ExposerBlockEntity::viewFor);
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, EXTRACTOR_BE.get(), (be, side) -> be.sided);
-        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, EXTRACTOR_BE.get(), (be, side) -> be.energy);
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, MINER_BE.get(), (be, side) -> be.sided);
-        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, DISTRIBUTOR_BE.get(), (be, side) -> be.view(side));   // this one line is the whole AE2 integration
-        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, MINER_BE.get(), (be, side) -> be.energy);
-        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ROUTER_BE.get(), (be, side) -> be.energy);
-        e.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ROUTER_BE.get(), (be, side) -> be.fluid);
+        e.registerBlockEntity(Capabilities.Item.BLOCK, ITEM_PIPE_BE.get(), Caps.items(PipeBlockEntity::handlerFor));
+        e.registerBlockEntity(Capabilities.Energy.BLOCK, ENERGY_CABLE_BE.get(), Caps.energy(EnergyCableBlockEntity::handlerFor));
+        e.registerBlockEntity(Capabilities.Fluid.BLOCK, FLUID_PIPE_BE.get(), Caps.fluids(FluidPipeBlockEntity::handlerFor));
+        e.registerBlockEntity(Capabilities.Item.BLOCK, EXPOSER_BE.get(), Caps.items(ExposerBlockEntity::viewFor));
+        e.registerBlockEntity(Capabilities.Item.BLOCK, EXTRACTOR_BE.get(), Caps.items((be, side) -> be.sided));
+        e.registerBlockEntity(Capabilities.Energy.BLOCK, EXTRACTOR_BE.get(), Caps.energy((be, side) -> be.energy));
+        e.registerBlockEntity(Capabilities.Item.BLOCK, MINER_BE.get(), Caps.items((be, side) -> be.sided));
+        e.registerBlockEntity(Capabilities.Item.BLOCK, DISTRIBUTOR_BE.get(), Caps.items((be, side) -> be.view(side)));   // this one line is the whole AE2 integration
+        e.registerBlockEntity(Capabilities.Energy.BLOCK, MINER_BE.get(), Caps.energy((be, side) -> be.energy));
+        e.registerBlockEntity(Capabilities.Energy.BLOCK, ROUTER_BE.get(), Caps.energy((be, side) -> be.energy));
+        e.registerBlockEntity(Capabilities.Fluid.BLOCK, ROUTER_BE.get(), Caps.fluids((be, side) -> be.fluid));
     }
 }

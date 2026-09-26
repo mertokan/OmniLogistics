@@ -2,7 +2,7 @@ package com.mertokan.omnilogistics.miner;
 
 import com.mertokan.omnilogistics.OmniLogistics;
 import com.mertokan.omnilogistics.core.DarkScreen;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -29,41 +29,39 @@ public class MinerScreen extends DarkScreen<MinerMenu> {
     }
 
     @Override
-    protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
-        super.renderBg(g, partialTick, mouseX, mouseY);
+    public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(g, mouseX, mouseY, partialTick);
         int e = (int) Math.min(BAR_H, (long) BAR_H * menu.energy() / menu.capacity());
         g.fill(leftPos + BAR_X, topPos + BAR_Y + BAR_H - e, leftPos + BAR_X + BAR_W, topPos + BAR_Y + BAR_H, ENERGY);
         int p = menu.status() == VoidMinerBlockEntity.MINING || menu.status() == VoidMinerBlockEntity.FULL ? PROG_W * Math.min(menu.progress(), menu.time()) / menu.time() : 0;
         if (p > 0) g.fill(leftPos + PROG_X, topPos + PROG_Y, leftPos + PROG_X + p, topPos + PROG_Y + PROG_H, VOID);
         VoidMinerBlockEntity m = menu.miner();
-        if (m != null && !m.pending.isEmpty()) g.renderItem(m.pending, leftPos + ITEM_X, topPos + ITEM_Y);
+        if (m != null && !m.pending.isEmpty()) g.item(m.pending, leftPos + ITEM_X, topPos + ITEM_Y);
         if (!menu.getSlot(CARD).hasItem()) ghost(g, ghostCard, leftPos + CARD_X, topPos + CARD_Y);
         if (!menu.getSlot(UPGRADE).hasItem()) ghost(g, ghostUpgrade, leftPos + UPG_X, topPos + UPG_Y);
     }
 
-    private static void ghost(GuiGraphics g, ItemStack s, int x, int y) {
-        g.renderFakeItem(s, x, y);
-        g.pose().pushPose();
-        g.pose().translate(0, 0, 300);
+    private static void ghost(GuiGraphicsExtractor g, ItemStack s, int x, int y) {
+        g.fakeItem(s, x, y);
+        g.nextStratum();
         g.fill(x, y, x + 16, y + 16, 0xA0101317);
-        g.pose().popPose();
     }
 
     @Override
-    protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
-        super.renderLabels(g, mouseX, mouseY);
+    protected void extractLabels(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+        super.extractLabels(g, mouseX, mouseY);
         int st = menu.status();
-        g.drawString(font, font.plainSubstrByWidth(Component.translatable(VoidMinerBlockEntity.statusKey(st)).getString(), TICK_X - STATUS_X - 4), STATUS_X, STATUS_Y, st == VoidMinerBlockEntity.MINING ? ACCENT : MUTED, false);
-        g.drawString(font, Component.translatable("gui.omnilogistics.ticks_short"), TICK_X + 32, TICK_Y + 2, MUTED, false);
+        g.text(font, font.plainSubstrByWidth(Component.translatable(VoidMinerBlockEntity.statusKey(st)).getString(), TICK_X - STATUS_X - 4), STATUS_X, STATUS_Y, st == VoidMinerBlockEntity.MINING ? ACCENT : MUTED, false);
+        g.text(font, Component.translatable("gui.omnilogistics.ticks_short"), TICK_X + 32, TICK_Y + 2, MUTED, false);
         int mx = mouseX - leftPos, my = mouseY - topPos;
         if (mx >= BAR_X && mx < BAR_X + BAR_W && my >= BAR_Y && my < BAR_Y + BAR_H)
-            g.renderTooltip(font, Component.translatable("gui.omnilogistics.energy", menu.energy(), menu.capacity(), menu.cost()), mx, my);
+            g.setTooltipForNextFrame(font, Component.translatable("gui.omnilogistics.energy", menu.energy(), menu.capacity(), menu.cost()), mx, my);
         else if (in(mx, my, CARD_X, CARD_Y) && !menu.getSlot(CARD).hasItem())
-            g.renderTooltip(font, font.split(Component.translatable("tooltip.omnilogistics.miner_card"), 200), mx, my);
+            g.setTooltipForNextFrame(font, font.split(Component.translatable("tooltip.omnilogistics.miner_card"), 200), mx, my);
         else if (in(mx, my, UPG_X, UPG_Y) && !menu.getSlot(UPGRADE).hasItem())
-            g.renderTooltip(font, font.split(Component.translatable("tooltip.omnilogistics.miner_upgrade"), 200), mx, my);
+            g.setTooltipForNextFrame(font, font.split(Component.translatable("tooltip.omnilogistics.miner_upgrade"), 200), mx, my);
         else if (mx >= PROG_X && mx < PROG_X + PROG_W && my >= ITEM_Y - 2 && my < PROG_Y + PROG_H)
-            g.renderTooltip(font, Component.translatable("gui.omnilogistics.miner.cycle", menu.progress(), menu.time()), mx, my);
+            g.setTooltipForNextFrame(font, Component.translatable("gui.omnilogistics.miner.cycle", menu.progress(), menu.time()), mx, my);
     }
 
     private static boolean in(int mx, int my, int x, int y) {

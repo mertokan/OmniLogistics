@@ -14,7 +14,7 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 public final class OmniCommand {
     @SubscribeEvent
     static void register(RegisterCommandsEvent e) {
-        e.getDispatcher().register(Commands.literal("omni").requires(s -> s.hasPermission(2))
+        e.getDispatcher().register(Commands.literal("omni").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
             .then(Commands.literal("showcase").executes(ctx -> {
                 CommandSourceStack s = ctx.getSource();
                 Showcase.build(s.getLevel(), BlockPos.containing(s.getPosition()), s.getPlayer());

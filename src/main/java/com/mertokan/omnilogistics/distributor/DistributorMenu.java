@@ -9,7 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
@@ -95,8 +95,8 @@ public class DistributorMenu extends AbstractContainerMenu {
 
     /** Right-click a card in its slot: edit its filter (and EXTRACT / INSERT) in place. */
     @Override
-    public void clicked(int slotId, int button, ClickType type, Player player) {
-        if (slotId >= 0 && slotId < LANES && button == 1 && type == ClickType.PICKUP && getCarried().isEmpty()
+    public void clicked(int slotId, int button, ContainerInput type, Player player) {
+        if (slotId >= 0 && slotId < LANES && button == 1 && type == ContainerInput.PICKUP && getCarried().isEmpty()
             && LogisticsCardItem.isFilterCard(slots.get(slotId).getItem())) {
             if (player instanceof ServerPlayer sp && distributor() != null) SlotCardHost.open(sp, distributor(), pos, slotId);
             return;
@@ -120,6 +120,6 @@ public class DistributorMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return distributor() != null && player.canInteractWithBlock(pos, 4.0);
+        return distributor() != null && player.isWithinBlockInteractionRange(pos, 4.0);
     }
 }

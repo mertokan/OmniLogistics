@@ -7,7 +7,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -37,26 +36,26 @@ public abstract class MachineBlock extends BaseEntityBlock {
 
     @Override
     public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return level.isClientSide ? null : (l, p, s, be) -> { if (be instanceof TickingBlockEntity t) t.serverTick(); };
+        return level.isClientSide() ? null : (l, p, s, be) -> { if (be instanceof TickingBlockEntity t) t.serverTick(); };
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (!stack.is(OmniLogistics.WRENCH.get()) && !stack.is(net.neoforged.neoforge.common.Tags.Items.TOOLS_WRENCH)) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-        if (!level.isClientSide) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (!stack.is(OmniLogistics.WRENCH.get()) && !stack.is(net.neoforged.neoforge.common.Tags.Items.TOOLS_WRENCH)) return InteractionResult.TRY_WITH_EMPTY_HAND;
+        if (!level.isClientSide()) {
             BlockEntity be = level.getBlockEntity(pos);
             if (player.isShiftKeyDown()) {
                 dismantle((net.minecraft.server.level.ServerLevel) level, pos, state, be, player, stack);
             } else if (be instanceof ConduitBlockEntity c && SmartPipeBlock.faceFor(hit, pos) == null) {
                 // centre cube: an OFF face facing you comes back on, otherwise cycle the redstone mode
-                if (c.mode(hit.getDirection()) == ConduitBlockEntity.Mode.NONE) player.displayClientMessage(c.wrenchFace(hit.getDirection(), player), true);
-                else player.displayClientMessage(c.cycleRedstone(), true);
+                if (c.mode(hit.getDirection()) == ConduitBlockEntity.Mode.NONE) player.sendOverlayMessage(c.wrenchFace(hit.getDirection(), player));
+                else player.sendOverlayMessage(c.cycleRedstone());
             } else if (be instanceof Wrenchable w) {
                 Direction face = state.getBlock() instanceof SmartPipeBlock ? SmartPipeBlock.faceFor(hit, pos) : hit.getDirection();
-                player.displayClientMessage(w.wrenchFace(face == null ? hit.getDirection() : face, player), true);
+                player.sendOverlayMessage(w.wrenchFace(face == null ? hit.getDirection() : face, player));
             }
         }
-        return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     /** Sneak + wrench: the block and everything inside go straight into the player's inventory (overflow drops). */
@@ -74,13 +73,8 @@ public abstract class MachineBlock extends BaseEntityBlock {
             // conduits: blocks can be placed against them, and only the ends of a run (touching an inventory / machine) have anything to configure
             if (player.getMainHandItem().getItem() instanceof BlockItem || !c.isEnd()) return InteractionResult.PASS;
         }
-        if (!level.isClientSide) player.openMenu(mh, mh::writeMenuData);
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        if (!level.isClientSide()) player.openMenu(mh, mh::writeMenuData);
+        return InteractionResult.SUCCESS;
     }
 
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TickingBlockEntity t) t.dropContents();
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
 }

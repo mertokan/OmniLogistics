@@ -288,5 +288,6 @@
   "tooltip.omnilogistics.nbt.any_index": "Tıkla: listedeki bu sıra <-> listenin herhangi bir elemanı",
   "tooltip.omnilogistics.nbt.op": "Sol tık: sonraki operatör\nSağ tık: önceki\n= ve != sayıları değerle karşılaştırır (5b, 5 ve 5.0 eşittir)\niçerir içerir: metnin içinde metin, listenin bir elemanı, bir bileşiğin anahtarı",
   "tooltip.omnilogistics.card_nbt_all": "NBT kuralları (%s, hepsi tutmalı):",
-  "tooltip.omnilogistics.card_nbt_any": "NBT kuralları (%s, biri tutsa yeter):"
+  "tooltip.omnilogistics.card_nbt_any": "NBT kuralları (%s, biri tutsa yeter):",
+  "key.category.omnilogistics.main": "OmniLogistics"
 }

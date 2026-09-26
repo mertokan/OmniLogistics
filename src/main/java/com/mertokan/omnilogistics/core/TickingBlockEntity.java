@@ -27,6 +27,12 @@ public abstract class TickingBlockEntity extends BlockEntity {
     /** Move everything stored here into {@code out} (slots are emptied). Override in block entities with inventories. */
     public void collect(java.util.List<ItemStack> out) {}
 
+    /** The block is going away (broken, replaced): whatever is left inside drops. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, net.minecraft.world.level.block.state.BlockState state) {
+        dropContents();
+    }
+
     /** Called when the block is broken: whatever is left inside drops. */
     public void dropContents() {
         java.util.List<ItemStack> out = new java.util.ArrayList<>();
@@ -45,7 +51,7 @@ public abstract class TickingBlockEntity extends BlockEntity {
 
     // ponytail: direct lookup every op instead of BlockCapabilityCache; switch if the profiler shows it
     protected @Nullable IItemHandler neighbor(Direction d) {
-        return level == null ? null : level.getCapability(Capabilities.ItemHandler.BLOCK, worldPosition.relative(d), d.getOpposite());
+        return level == null ? null : Caps.items(level, worldPosition.relative(d), d.getOpposite());
     }
 
     public void sync() {

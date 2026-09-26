@@ -10,7 +10,7 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 
 /** Layout: gear (+ donor below) -> arrow -> result + up to 4 extras. Note line under it names the needed module. */
@@ -38,10 +38,10 @@ public class ExtractionCategory implements IRecipeCategory<OmniJeiPlugin.Extract
     }
 
     @Override
-    public void draw(OmniJeiPlugin.ExtractionRecipe r, IRecipeSlotsView view, GuiGraphics g, double mouseX, double mouseY) {
+    public void draw(OmniJeiPlugin.ExtractionRecipe r, IRecipeSlotsView view, GuiGraphicsExtractor g, double mouseX, double mouseY) {
         var font = Minecraft.getInstance().font;
-        g.drawString(font, r.fuse() ? "+  >>" : "-  >>", 30, 9, r.fuse() ? 0xFF9F1C : 0x5CFF7A, false);
-        g.drawString(font, Component.translatable(r.fuse() ? "gui.omnilogistics.mode_fuse" : "gui.omnilogistics.mode_extract"), 28, 30, 0x808080, false);
-        g.drawString(font, Component.translatable(r.noteKey()), 4, 52, 0x808080, false);
+        g.text(font, r.fuse() ? "+  >>" : "-  >>", 30, 9, r.fuse() ? 0xFFFF9F1C : 0xFF5CFF7A, false);
+        g.text(font, Component.translatable(r.fuse() ? "gui.omnilogistics.mode_fuse" : "gui.omnilogistics.mode_extract"), 28, 30, 0xFF808080, false);
+        g.text(font, Component.translatable(r.noteKey()), 4, 52, 0xFF808080, false);
     }
 }

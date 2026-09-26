@@ -26,10 +26,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.RelativeMovement;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.entity.Relative;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.WorldDataConfiguration;
@@ -96,11 +96,11 @@ public final class SelfTest {
         if (p.tickCount < 40) return;
         serverDone = true;
         if (AUTO && !fresh) return;   // an existing OmniTest world: nothing to build
-        ServerLevel sl = p.serverLevel();
-        sl.setDayTime(6000);
+        ServerLevel sl = p.level();
+        sl.dimensionType().defaultClock().ifPresent(c -> e.getServer().clockManager().setTotalTicks(c, 6000));   // noon
         if (PREPARE || AUTO) {   // a world to play in: always noon, no mobs, the whole showcase around spawn
-            sl.getGameRules().getRule(GameRules.RULE_DAYLIGHT).set(false, e.getServer());
-            sl.getGameRules().getRule(GameRules.RULE_DOMOBSPAWNING).set(false, e.getServer());
+            sl.getGameRules().set(GameRules.ADVANCE_TIME, false, e.getServer());
+            sl.getGameRules().set(GameRules.SPAWN_MOBS, false, e.getServer());
             showcaseOrigin = p.blockPosition();
             Showcase.build(sl, showcaseOrigin, p);
             verifyAt = p.tickCount + 700;   // let the demos actually run before the world is judged
@@ -111,7 +111,7 @@ public final class SelfTest {
         BlockPos base = p.blockPosition();
         p.getAbilities().flying = true;
         p.onUpdateAbilities();
-        p.teleportTo(sl, base.getX() + 0.5, base.getY() + 2.5, base.getZ() + 0.5, Set.<RelativeMovement>of(), 180, 22);
+        p.teleportTo(sl, base.getX() + 0.5, base.getY() + 2.5, base.getZ() + 0.5, Set.<Relative>of(), 180, 22, true);
         p.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(OmniLogistics.CARDS.get(CardKind.VOID).get()));
         int slot = 9;   // every conduit in the inventory rows, so the GUI screenshots show whether the icons tell tiers and types apart
         for (PipeType type : PipeType.values())
@@ -142,7 +142,7 @@ public final class SelfTest {
     /** PREPARE only: read the world back after the demos have had time to run, and write what worked to selftest.txt. */
     private static void verify(ServerPlayer p) {
         verified = true;
-        for (String line : Showcase.verify(p.serverLevel(), showcaseOrigin)) record(line);
+        for (String line : Showcase.verify(p.level(), showcaseOrigin)) record(line);
         try {
             Files.write(Path.of("selftest.txt"), RESULTS);
         } catch (IOException ex) {
@@ -198,11 +198,11 @@ public final class SelfTest {
         }
         // fill the conduits themselves too, so every segment has something to show
         for (int dy = 1; dy <= 3; dy++) {
-            IFluidHandler h = sl.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.BLOCK, new BlockPos(x + 7, y + dy, z), null);
+            IFluidHandler h = com.mertokan.omnilogistics.core.Caps.fluids(sl, new BlockPos(x + 7, y + dy, z), null);
             if (h != null) h.fill(new FluidStack(Fluids.WATER, 100000), IFluidHandler.FluidAction.EXECUTE);
         }
         for (int dx = 8; dx <= 9; dx++) {
-            var e = sl.getCapability(net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK, new BlockPos(x + dx, y, z), null);
+            var e = com.mertokan.omnilogistics.core.Caps.energy(sl, new BlockPos(x + dx, y, z), null);
             if (e != null) e.receiveEnergy(Integer.MAX_VALUE, false);
         }
     }
@@ -236,9 +236,9 @@ public final class SelfTest {
                 }
                 fresh = true;
                 LOG.info("[SELFTEST] creating flat world {}", WORLD);
-                LevelSettings settings = new LevelSettings(WORLD, GameType.CREATIVE, false, Difficulty.PEACEFUL, true, new GameRules(), WorldDataConfiguration.DEFAULT);
+                LevelSettings settings = new LevelSettings(WORLD, GameType.CREATIVE, new LevelSettings.DifficultySettings(Difficulty.PEACEFUL, false, false), true, WorldDataConfiguration.DEFAULT);
                 mc.createWorldOpenFlows().createFreshLevel(WORLD, settings, WorldOptions.defaultWithRandomSeed(),
-                    regs -> regs.registryOrThrow(Registries.WORLD_PRESET).getHolderOrThrow(WorldPresets.FLAT).value().createWorldDimensions(), mc.screen);
+                    regs -> regs.lookupOrThrow(Registries.WORLD_PRESET).getOrThrow(WorldPresets.FLAT).value().createWorldDimensions(), mc.screen);
             }
             return;
         }
@@ -276,7 +276,7 @@ public final class SelfTest {
                 record("right-click router opens RouterScreen: " + ok + " (screen=" + name(mc) + ")");
                 if (!ok) { finish(mc); return; }
                 shot(mc, "omni_gui_router.png");
-                mc.gameMode.handleInventoryMouseClick(mc.player.containerMenu.containerId, 0, 1, ClickType.PICKUP, mc.player);
+                mc.gameMode.handleContainerInput(mc.player.containerMenu.containerId, 0, 1, ContainerInput.PICKUP, mc.player);
                 next(5);
             }
             case 5 -> {
@@ -296,7 +296,7 @@ public final class SelfTest {
                 record("right-click end pipe opens PipeScreen: " + ok + " (screen=" + name(mc) + ")");
                 if (!ok) { finish(mc); return; }
                 shot(mc, "omni_gui_pipe.png");
-                mc.gameMode.handleInventoryMouseClick(mc.player.containerMenu.containerId, 0, 1, ClickType.PICKUP, mc.player);
+                mc.gameMode.handleContainerInput(mc.player.containerMenu.containerId, 0, 1, ContainerInput.PICKUP, mc.player);
                 next(8);
             }
             case 8 -> {
@@ -332,7 +332,7 @@ public final class SelfTest {
             }
             case 19 -> { // an Elite card in hand: the 16-reference filter panel comes off the bigger sheet
                 if (timer < 20 || mc.screen != null) return;
-                mc.player.getInventory().selected = 1;
+                mc.player.getInventory().setSelectedSlot(1);
                 mc.gameMode.useItem(mc.player, InteractionHand.MAIN_HAND);
                 next(20);
             }
@@ -346,7 +346,7 @@ public final class SelfTest {
             }
             case 40 -> { // a card with a worn, enchanted sword as reference and three NBT rules on it
                 if (timer < 20 || mc.screen != null) return;
-                mc.player.getInventory().selected = 2;
+                mc.player.getInventory().setSelectedSlot(2);
                 mc.gameMode.useItem(mc.player, InteractionHand.MAIN_HAND);
                 next(41);
             }
@@ -367,7 +367,7 @@ public final class SelfTest {
                 if (timer < 10) return;
                 shot(mc, "omni_gui_nbt_pick.png");
                 mc.player.closeContainer();
-                mc.player.getInventory().selected = 0;
+                mc.player.getInventory().setSelectedSlot(0);
                 next(22);
             }
             case 22 -> { // the extractor GUI: mode button + the tick field
@@ -486,7 +486,7 @@ public final class SelfTest {
                 // third person looks back at the player, so face them south and keep the showcase behind them
                 camera(mc, showcaseOrigin.getX() + 0.5, showcaseOrigin.getY() + 1,
                     showcaseOrigin.getZ() + (third ? 10.5 : 7.5), third ? 0f : 180f, third ? 0f : 2f);
-                mc.player.connection.sendCommand("item replace entity @s hotbar." + mc.player.getInventory().selected
+                mc.player.connection.sendCommand("item replace entity @s hotbar." + mc.player.getInventory().getSelectedSlot()
                     + " with omnilogistics:logistics_card");   // the slot the server thinks is selected, not slot 0
                 mc.player.connection.sendCommand("item replace entity @s weapon.offhand with minecraft:gold_ingot");
                 pressWait = 30;
@@ -515,7 +515,7 @@ public final class SelfTest {
     /** Click a point given in panel coordinates, the way the player would. */
     private static void clickPanel(FilterScreen fs, int px, int py) {
         int left = (fs.width - FilterScreen.WIDTH) / 2, top = (fs.height - com.mertokan.omnilogistics.core.FilterMenu.height(1)) / 2;
-        fs.mouseClicked(left + px, top + py, 0);
+        fs.mouseClicked(new net.minecraft.client.input.MouseButtonEvent(left + px, top + py, new net.minecraft.client.input.MouseButtonInfo(0, 0)), false);
     }
 
     /** A plain card whose reference is a worn, enchanted, renamed sword, with three rules picked from it. */
@@ -538,7 +538,7 @@ public final class SelfTest {
     }
 
     private static void shot(Minecraft mc, String file) {
-        Screenshot.grab(mc.gameDirectory, file, mc.getMainRenderTarget(), c -> {});
+        Screenshot.grab(mc.gameDirectory, file, mc.getMainRenderTarget(), 1, c -> {});
         record("screenshot: screenshots/" + file);
     }
 

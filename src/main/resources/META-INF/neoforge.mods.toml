@@ -19,27 +19,27 @@ fluids across dimensions.'''
 [[dependencies.omnilogistics]]
 modId="neoforge"
 type="required"
-versionRange="[21.1,)"
+versionRange="[26.1.2,)"
 ordering="NONE"
 side="BOTH"
 
 [[dependencies.omnilogistics]]
 modId="patchouli"
 type="optional"
-versionRange="[1.21.1-80,)"
+versionRange="[26.1,)"
 ordering="AFTER"
 side="BOTH"
 
 [[dependencies.omnilogistics]]
 modId="jei"
 type="optional"
-versionRange="[19,)"
+versionRange="[29,)"
 ordering="NONE"
 side="BOTH"
 
 [[dependencies.omnilogistics]]
 modId="minecraft"
 type="required"
-versionRange="[1.21.1]"
+versionRange="[26.1.2]"
 ordering="NONE"
 side="BOTH"

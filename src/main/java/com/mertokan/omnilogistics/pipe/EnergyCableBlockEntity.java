@@ -1,5 +1,6 @@
 package com.mertokan.omnilogistics.pipe;
 
+import com.mertokan.omnilogistics.core.Caps;
 import com.mertokan.omnilogistics.OmniLogistics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -57,7 +58,7 @@ public class EnergyCableBlockEntity extends ConduitBlockEntity {
     @Override protected boolean bufferEmptyOrPartial() { return buffer.getEnergyStored() < buffer.getMaxEnergyStored(); }
 
     private @Nullable IEnergyStorage cap(Direction d) {
-        return level.getCapability(Capabilities.EnergyStorage.BLOCK, worldPosition.relative(d), d.getOpposite());
+        return Caps.energy(level, worldPosition.relative(d), d.getOpposite());
     }
 
     @Override
@@ -83,14 +84,14 @@ public class EnergyCableBlockEntity extends ConduitBlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.saveAdditional(tag, regs);
-        tag.put("Energy", buffer.serializeNBT(regs));
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput tag) {
+        super.saveAdditional(tag);
+        buffer.serialize(tag.child("Energy"));
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider regs) {
-        super.loadAdditional(tag, regs);
-        if (tag.contains("Energy")) buffer.deserializeNBT(regs, tag.get("Energy"));
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput tag) {
+        super.loadAdditional(tag);
+        buffer.deserialize(tag.childOrEmpty("Energy"));
     }
 }

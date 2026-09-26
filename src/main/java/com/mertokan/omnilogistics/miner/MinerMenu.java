@@ -9,7 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
@@ -90,8 +90,8 @@ public class MinerMenu extends AbstractContainerMenu {
 
     /** Right-click the card in its slot: edit its filter in place. */
     @Override
-    public void clicked(int slotId, int button, ClickType type, Player player) {
-        if (slotId == CARD && button == 1 && type == ClickType.PICKUP && getCarried().isEmpty() && LogisticsCardItem.isFilterCard(slots.get(CARD).getItem())) {
+    public void clicked(int slotId, int button, ContainerInput type, Player player) {
+        if (slotId == CARD && button == 1 && type == ContainerInput.PICKUP && getCarried().isEmpty() && LogisticsCardItem.isFilterCard(slots.get(CARD).getItem())) {
             if (player instanceof ServerPlayer sp && miner() != null) SlotCardHost.open(sp, miner(), pos, 0);
             return;
         }
@@ -114,6 +114,6 @@ public class MinerMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return miner() != null && player.canInteractWithBlock(pos, 4.0);
+        return miner() != null && player.isWithinBlockInteractionRange(pos, 4.0);
     }
 }
