@@ -136,7 +136,9 @@ for it.
 
 ## Requirements
 
-Minecraft 1.21.1, NeoForge 21.1+. Client and server. MIT licensed.
+Minecraft **1.21.1** (NeoForge 21.1+) or **26.1.2** (NeoForge 26.1.2+). Client and server. MIT licensed.
+
+On 26.1.2 the in-world tests run against AE2 and Powah; Mekanism and Actually Additions have no 26.1.2 build yet, and the mod does not need either of them.
 
 {items}
 ## Screenshots
@@ -208,7 +210,9 @@ NeoForge eşya, enerji veya sıvı yeteneğini açan her mod, onun için tek sat
 
 ## Gereksinimler
 
-Minecraft 1.21.1, NeoForge 21.1+. İstemci ve sunucu. MIT lisansı.
+Minecraft **1.21.1** (NeoForge 21.1+) ya da **26.1.2** (NeoForge 26.1.2+). İstemci ve sunucu. MIT lisansı.
+
+26.1.2'de oyun içi testler AE2 ve Powah ile çalışıyor; Mekanism ve Actually Additions'ın henüz 26.1.2 sürümü yok; mod ikisine de ihtiyaç duymuyor.
 
 {items}
 ## Ekran görüntüleri
