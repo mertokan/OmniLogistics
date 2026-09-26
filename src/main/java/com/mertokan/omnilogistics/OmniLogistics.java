@@ -287,7 +287,7 @@ public class OmniLogistics {
         e.registerBlockEntity(Capabilities.Item.BLOCK, ITEM_PIPE_BE.get(), Caps.items(PipeBlockEntity::handlerFor));
         e.registerBlockEntity(Capabilities.Energy.BLOCK, ENERGY_CABLE_BE.get(), Caps.energy(EnergyCableBlockEntity::handlerFor));
         e.registerBlockEntity(Capabilities.Fluid.BLOCK, FLUID_PIPE_BE.get(), Caps.fluids(FluidPipeBlockEntity::handlerFor));
-        e.registerBlockEntity(Capabilities.Item.BLOCK, EXPOSER_BE.get(), Caps.items(ExposerBlockEntity::viewFor));
+        e.registerBlockEntity(Capabilities.Item.BLOCK, EXPOSER_BE.get(), ExposerBlockEntity::resourceView);   // forwards, so it passes the transaction through
         e.registerBlockEntity(Capabilities.Item.BLOCK, EXTRACTOR_BE.get(), Caps.items((be, side) -> be.sided));
         e.registerBlockEntity(Capabilities.Energy.BLOCK, EXTRACTOR_BE.get(), Caps.energy((be, side) -> be.energy));
         e.registerBlockEntity(Capabilities.Item.BLOCK, MINER_BE.get(), Caps.items((be, side) -> be.sided));

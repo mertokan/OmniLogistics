@@ -6,15 +6,9 @@
   "CRC"
  ],
  "key": {
-  "C": {
-   "tag": "c:ingots/copper"
-  },
-  "R": {
-   "tag": "c:dusts/redstone"
-  },
-  "I": {
-   "tag": "c:ingots/iron"
-  }
+  "C": "#c:ingots/copper",
+  "R": "#c:dusts/redstone",
+  "I": "#c:ingots/iron"
  },
  "result": {
   "id": "omnilogistics:basic_energy_cable",

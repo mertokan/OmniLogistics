@@ -6,12 +6,8 @@
   "CGC"
  ],
  "key": {
-  "C": {
-   "tag": "c:ingots/copper"
-  },
-  "G": {
-   "tag": "c:glass_blocks"
-  }
+  "C": "#c:ingots/copper",
+  "G": "#c:glass_blocks"
  },
  "result": {
   "id": "omnilogistics:basic_fluid_pipe",

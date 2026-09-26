@@ -1,12 +1,8 @@
 {
  "type": "minecraft:crafting_shapeless",
  "ingredients": [
-  {
-   "item": "omnilogistics:logistics_card"
-  },
-  {
-   "item": "minecraft:iron_pickaxe"
-  }
+  "omnilogistics:logistics_card",
+  "minecraft:iron_pickaxe"
  ],
  "result": {
   "id": "omnilogistics:breaker_card",

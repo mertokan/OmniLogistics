@@ -6,12 +6,8 @@
   "PPP"
  ],
  "key": {
-  "P": {
-   "item": "omnilogistics:basic_energy_cable"
-  },
-  "X": {
-   "tag": "c:ingots/gold"
-  }
+  "P": "omnilogistics:basic_energy_cable",
+  "X": "#c:ingots/gold"
  },
  "result": {
   "id": "omnilogistics:advanced_energy_cable",

@@ -317,7 +317,7 @@ public class MachineGameTests {
         ItemStack pull = card(h, CardKind.ITEM, A, LogisticsCardItem.EXTRACT);   // the rules sit on the pulling card
         CardConfig.apply(pull, CardConfig.modes(pull), ComponentPredicateEngine.MATCH_NBT, List.of(), List.of(), List.of(
             new com.mertokan.omnilogistics.api.NbtRule(List.of("minecraft:damage"), com.mertokan.omnilogistics.api.NbtRule.Op.LT, "50", true),
-            new com.mertokan.omnilogistics.api.NbtRule(List.of("minecraft:enchantments", "levels", "minecraft:sharpness"),
+            new com.mertokan.omnilogistics.api.NbtRule(List.of("minecraft:enchantments", "minecraft:sharpness"),
                 com.mertokan.omnilogistics.api.NbtRule.Op.GE, "3", true)));
         be.cards.setStackInSlot(0, pull);
         be.cards.setStackInSlot(1, card(h, CardKind.ITEM, B, LogisticsCardItem.INSERT));

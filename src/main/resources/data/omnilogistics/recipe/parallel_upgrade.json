@@ -6,18 +6,10 @@
   "IHI"
  ],
  "key": {
-  "I": {
-   "tag": "c:ingots/iron"
-  },
-  "H": {
-   "item": "minecraft:hopper"
-  },
-  "R": {
-   "tag": "c:dusts/redstone"
-  },
-  "C": {
-   "tag": "c:ingots/copper"
-  }
+  "I": "#c:ingots/iron",
+  "H": "minecraft:hopper",
+  "R": "#c:dusts/redstone",
+  "C": "#c:ingots/copper"
  },
  "result": {
   "id": "omnilogistics:parallel_upgrade",

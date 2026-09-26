@@ -6,15 +6,9 @@
   "DED"
  ],
  "key": {
-  "D": {
-   "tag": "c:gems/diamond"
-  },
-  "E": {
-   "tag": "c:gems/emerald"
-  },
-  "B": {
-   "item": "minecraft:book"
-  }
+  "D": "#c:gems/diamond",
+  "E": "#c:gems/emerald",
+  "B": "minecraft:book"
  },
  "result": {
   "id": "omnilogistics:gem_module",

@@ -6,15 +6,9 @@
   "CEC"
  ],
  "key": {
-  "C": {
-   "tag": "c:gems/diamond"
-  },
-  "E": {
-   "item": "minecraft:ender_eye"
-  },
-  "M": {
-   "item": "omnilogistics:advanced_void_miner"
-  }
+  "C": "#c:gems/diamond",
+  "E": "minecraft:ender_eye",
+  "M": "omnilogistics:advanced_void_miner"
  },
  "result": {
   "id": "omnilogistics:elite_void_miner",

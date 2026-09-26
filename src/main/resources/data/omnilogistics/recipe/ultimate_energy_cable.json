@@ -6,12 +6,8 @@
   "PPP"
  ],
  "key": {
-  "P": {
-   "item": "omnilogistics:elite_energy_cable"
-  },
-  "X": {
-   "tag": "c:ingots/netherite"
-  }
+  "P": "omnilogistics:elite_energy_cable",
+  "X": "#c:ingots/netherite"
  },
  "result": {
   "id": "omnilogistics:ultimate_energy_cable",

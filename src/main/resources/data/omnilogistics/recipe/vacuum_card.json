@@ -1,12 +1,8 @@
 {
  "type": "minecraft:crafting_shapeless",
  "ingredients": [
-  {
-   "item": "omnilogistics:logistics_card"
-  },
-  {
-   "item": "minecraft:hopper"
-  }
+  "omnilogistics:logistics_card",
+  "minecraft:hopper"
  ],
  "result": {
   "id": "omnilogistics:vacuum_card",

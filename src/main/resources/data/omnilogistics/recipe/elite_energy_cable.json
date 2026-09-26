@@ -6,12 +6,8 @@
   "PPP"
  ],
  "key": {
-  "P": {
-   "item": "omnilogistics:advanced_energy_cable"
-  },
-  "X": {
-   "tag": "c:gems/diamond"
-  }
+  "P": "omnilogistics:advanced_energy_cable",
+  "X": "#c:gems/diamond"
  },
  "result": {
   "id": "omnilogistics:elite_energy_cable",

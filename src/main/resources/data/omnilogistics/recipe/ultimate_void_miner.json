@@ -6,15 +6,9 @@
   "CEC"
  ],
  "key": {
-  "C": {
-   "tag": "c:ingots/netherite"
-  },
-  "E": {
-   "item": "minecraft:ender_eye"
-  },
-  "M": {
-   "item": "omnilogistics:elite_void_miner"
-  }
+  "C": "#c:ingots/netherite",
+  "E": "minecraft:ender_eye",
+  "M": "omnilogistics:elite_void_miner"
  },
  "result": {
   "id": "omnilogistics:ultimate_void_miner",

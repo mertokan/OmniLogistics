@@ -1,0 +1,14 @@
+{
+ "model": {
+  "type": "minecraft:condition",
+  "property": "omnilogistics:bound",
+  "on_true": {
+   "type": "minecraft:model",
+   "model": "omnilogistics:item/card_vacuum_extract_bound"
+  },
+  "on_false": {
+   "type": "minecraft:model",
+   "model": "omnilogistics:item/vacuum_card"
+  }
+ }
+}

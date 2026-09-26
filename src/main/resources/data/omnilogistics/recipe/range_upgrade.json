@@ -6,15 +6,9 @@
   "GEG"
  ],
  "key": {
-  "G": {
-   "tag": "c:ingots/gold"
-  },
-  "E": {
-   "tag": "c:ender_pearls"
-  },
-  "A": {
-   "item": "minecraft:amethyst_shard"
-  }
+  "G": "#c:ingots/gold",
+  "E": "#c:ender_pearls",
+  "A": "minecraft:amethyst_shard"
  },
  "result": {
   "id": "omnilogistics:range_upgrade",

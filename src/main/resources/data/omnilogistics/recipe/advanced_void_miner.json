@@ -6,15 +6,9 @@
   "CEC"
  ],
  "key": {
-  "C": {
-   "tag": "c:ingots/gold"
-  },
-  "E": {
-   "item": "minecraft:ender_eye"
-  },
-  "M": {
-   "item": "omnilogistics:basic_void_miner"
-  }
+  "C": "#c:ingots/gold",
+  "E": "minecraft:ender_eye",
+  "M": "omnilogistics:basic_void_miner"
  },
  "result": {
   "id": "omnilogistics:advanced_void_miner",

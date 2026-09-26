@@ -6,18 +6,10 @@
   "IRI"
  ],
  "key": {
-  "I": {
-   "tag": "c:ingots/iron"
-  },
-  "G": {
-   "tag": "c:glass_blocks"
-  },
-  "C": {
-   "item": "omnilogistics:logistics_card"
-  },
-  "R": {
-   "tag": "c:dusts/redstone"
-  }
+  "I": "#c:ingots/iron",
+  "G": "#c:glass_blocks",
+  "C": "omnilogistics:logistics_card",
+  "R": "#c:dusts/redstone"
  },
  "result": {
   "id": "omnilogistics:machine_monitor",

@@ -6,12 +6,8 @@
   "PPP"
  ],
  "key": {
-  "P": {
-   "item": "omnilogistics:basic_item_pipe"
-  },
-  "X": {
-   "tag": "c:ingots/gold"
-  }
+  "P": "omnilogistics:basic_item_pipe",
+  "X": "#c:ingots/gold"
  },
  "result": {
   "id": "omnilogistics:advanced_item_pipe",

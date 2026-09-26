@@ -531,7 +531,7 @@ public final class SelfTest {
         com.mertokan.omnilogistics.router.CardConfig.apply(card, com.mertokan.omnilogistics.router.CardConfig.modes(card),
             com.mertokan.omnilogistics.api.ComponentPredicateEngine.MATCH_ITEM | com.mertokan.omnilogistics.api.ComponentPredicateEngine.MATCH_NBT, List.of(), List.of(), List.of(
                 new com.mertokan.omnilogistics.api.NbtRule(List.of("minecraft:damage"), com.mertokan.omnilogistics.api.NbtRule.Op.LT, "200", true),
-                new com.mertokan.omnilogistics.api.NbtRule(List.of("minecraft:enchantments", "levels", "minecraft:sharpness"),
+                new com.mertokan.omnilogistics.api.NbtRule(List.of("minecraft:enchantments", "minecraft:sharpness"),
                     com.mertokan.omnilogistics.api.NbtRule.Op.GE, "3", true),
                 new com.mertokan.omnilogistics.api.NbtRule(List.of("minecraft:custom_name"), com.mertokan.omnilogistics.api.NbtRule.Op.CONTAINS, "blade", true)));
         return card;

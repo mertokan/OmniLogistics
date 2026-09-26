@@ -6,12 +6,8 @@
   "PPP"
  ],
  "key": {
-  "P": {
-   "item": "omnilogistics:elite_item_pipe"
-  },
-  "X": {
-   "tag": "c:ingots/netherite"
-  }
+  "P": "omnilogistics:elite_item_pipe",
+  "X": "#c:ingots/netherite"
  },
  "result": {
   "id": "omnilogistics:ultimate_item_pipe",

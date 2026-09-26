@@ -6,15 +6,9 @@
   "DAD"
  ],
  "key": {
-  "D": {
-   "tag": "c:gems/diamond"
-  },
-  "A": {
-   "item": "minecraft:anvil"
-  },
-  "B": {
-   "item": "minecraft:enchanted_book"
-  }
+  "D": "#c:gems/diamond",
+  "A": "minecraft:anvil",
+  "B": "minecraft:enchanted_book"
  },
  "result": {
   "id": "omnilogistics:fusion_module",

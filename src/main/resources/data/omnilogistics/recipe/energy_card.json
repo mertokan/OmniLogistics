@@ -1,12 +1,8 @@
 {
  "type": "minecraft:crafting_shapeless",
  "ingredients": [
-  {
-   "item": "omnilogistics:logistics_card"
-  },
-  {
-   "item": "minecraft:redstone_block"
-  }
+  "omnilogistics:logistics_card",
+  "minecraft:redstone_block"
  ],
  "result": {
   "id": "omnilogistics:energy_card",

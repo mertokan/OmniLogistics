@@ -2,26 +2,5 @@
  "parent": "minecraft:item/generated",
  "textures": {
   "layer0": "omnilogistics:item/card_fluid_extract"
- },
- "overrides": [
-  {
-   "predicate": {
-    "omnilogistics:bound": 1
-   },
-   "model": "omnilogistics:item/card_fluid_extract_bound"
-  },
-  {
-   "predicate": {
-    "omnilogistics:mode": 1
-   },
-   "model": "omnilogistics:item/card_fluid_insert"
-  },
-  {
-   "predicate": {
-    "omnilogistics:mode": 1,
-    "omnilogistics:bound": 1
-   },
-   "model": "omnilogistics:item/card_fluid_insert_bound"
-  }
- ]
+ }
 }

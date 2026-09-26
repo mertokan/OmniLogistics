@@ -1,12 +1,8 @@
 {
  "type": "minecraft:crafting_shapeless",
  "ingredients": [
-  {
-   "item": "omnilogistics:logistics_card"
-  },
-  {
-   "item": "minecraft:comparator"
-  }
+  "omnilogistics:logistics_card",
+  "minecraft:comparator"
  ],
  "result": {
   "id": "omnilogistics:detector_card",

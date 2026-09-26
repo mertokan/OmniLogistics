@@ -1,12 +1,8 @@
 {
  "type": "minecraft:crafting_shapeless",
  "ingredients": [
-  {
-   "item": "omnilogistics:logistics_card"
-  },
-  {
-   "item": "minecraft:bucket"
-  }
+  "omnilogistics:logistics_card",
+  "minecraft:bucket"
  ],
  "result": {
   "id": "omnilogistics:fluid_card",

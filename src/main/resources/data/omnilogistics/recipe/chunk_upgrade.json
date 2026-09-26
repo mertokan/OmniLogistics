@@ -6,15 +6,9 @@
   "EGE"
  ],
  "key": {
-  "E": {
-   "tag": "c:ender_pearls"
-  },
-  "G": {
-   "tag": "c:ingots/gold"
-  },
-  "D": {
-   "tag": "c:gems/diamond"
-  }
+  "E": "#c:ender_pearls",
+  "G": "#c:ingots/gold",
+  "D": "#c:gems/diamond"
  },
  "result": {
   "id": "omnilogistics:chunk_upgrade",

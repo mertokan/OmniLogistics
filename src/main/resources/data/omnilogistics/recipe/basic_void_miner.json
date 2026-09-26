@@ -6,21 +6,11 @@
   "IRI"
  ],
  "key": {
-  "I": {
-   "tag": "c:ingots/iron"
-  },
-  "E": {
-   "tag": "c:ender_pearls"
-  },
-  "D": {
-   "tag": "c:gems/diamond"
-  },
-  "O": {
-   "item": "minecraft:obsidian"
-  },
-  "R": {
-   "tag": "c:storage_blocks/redstone"
-  }
+  "I": "#c:ingots/iron",
+  "E": "#c:ender_pearls",
+  "D": "#c:gems/diamond",
+  "O": "minecraft:obsidian",
+  "R": "#c:storage_blocks/redstone"
  },
  "result": {
   "id": "omnilogistics:basic_void_miner",

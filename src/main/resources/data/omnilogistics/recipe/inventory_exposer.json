@@ -6,21 +6,11 @@
   "IRI"
  ],
  "key": {
-  "I": {
-   "tag": "c:ingots/iron"
-  },
-  "E": {
-   "item": "minecraft:ender_pearl"
-  },
-  "C": {
-   "tag": "c:ingots/copper"
-  },
-  "H": {
-   "item": "minecraft:hopper"
-  },
-  "R": {
-   "item": "minecraft:redstone"
-  }
+  "I": "#c:ingots/iron",
+  "E": "minecraft:ender_pearl",
+  "C": "#c:ingots/copper",
+  "H": "minecraft:hopper",
+  "R": "minecraft:redstone"
  },
  "result": {
   "id": "omnilogistics:inventory_exposer",

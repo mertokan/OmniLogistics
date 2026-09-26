@@ -6,21 +6,11 @@
   "IRI"
  ],
  "key": {
-  "I": {
-   "tag": "c:ingots/iron"
-  },
-  "B": {
-   "item": "minecraft:book"
-  },
-  "D": {
-   "item": "minecraft:diamond"
-  },
-  "G": {
-   "item": "minecraft:grindstone"
-  },
-  "R": {
-   "item": "minecraft:redstone_block"
-  }
+  "I": "#c:ingots/iron",
+  "B": "minecraft:book",
+  "D": "minecraft:diamond",
+  "G": "minecraft:grindstone",
+  "R": "minecraft:redstone_block"
  },
  "result": {
   "id": "omnilogistics:component_extractor",

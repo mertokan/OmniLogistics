@@ -64,6 +64,55 @@ public class ExposerBlockEntity extends TickingBlockEntity implements FilterHost
         return side != null && side == target ? null : view;
     }
 
+    /**
+     * The same view on the transfer API, for the capability. The exposer only forwards to the inventory behind it, so
+     * it forwards the caller's transaction too instead of adapting: a hopper, AE2 or a pipe then commits or rolls back
+     * the wrapped inventory exactly as if it were talking to it directly, just through the filter.
+     */
+    public net.neoforged.neoforge.transfer.@Nullable ResourceHandler<net.neoforged.neoforge.transfer.item.ItemResource> resourceView(@Nullable Direction side) {
+        return side != null && side == target ? null : filtered;
+    }
+
+    private final net.neoforged.neoforge.transfer.ResourceHandler<net.neoforged.neoforge.transfer.item.ItemResource> filtered =
+        new net.neoforged.neoforge.transfer.ResourceHandler<>() {
+            private net.neoforged.neoforge.transfer.@Nullable ResourceHandler<net.neoforged.neoforge.transfer.item.ItemResource> t() {
+                return target == null || level == null ? null : level.getCapability(net.neoforged.neoforge.capabilities.Capabilities.Item.BLOCK,
+                    worldPosition.relative(target), target.getOpposite());
+            }
+            private boolean passes(net.neoforged.neoforge.transfer.item.ItemResource r) {
+                return !r.isEmpty() && spec.test(r.toStack(1));
+            }
+            @Override public int size() { var t = t(); return t == null ? 0 : t.size(); }
+            @Override public net.neoforged.neoforge.transfer.item.ItemResource getResource(int i) {
+                var t = t();
+                if (t == null) return net.neoforged.neoforge.transfer.item.ItemResource.EMPTY;
+                var r = t.getResource(i);
+                return passes(r) ? r : net.neoforged.neoforge.transfer.item.ItemResource.EMPTY;
+            }
+            @Override public long getAmountAsLong(int i) {
+                var t = t();
+                return t == null || !passes(t.getResource(i)) ? 0 : t.getAmountAsLong(i);
+            }
+            @Override public long getCapacityAsLong(int i, net.neoforged.neoforge.transfer.item.ItemResource r) {
+                var t = t();
+                return t == null ? 0 : t.getCapacityAsLong(i, r);
+            }
+            @Override public boolean isValid(int i, net.neoforged.neoforge.transfer.item.ItemResource r) {
+                var t = t();
+                return t != null && passes(r) && t.isValid(i, r);
+            }
+            @Override public int insert(int i, net.neoforged.neoforge.transfer.item.ItemResource r, int n,
+                                        net.neoforged.neoforge.transfer.transaction.TransactionContext tx) {
+                var t = t();
+                return t == null || !passes(r) ? 0 : t.insert(i, r, n, tx);
+            }
+            @Override public int extract(int i, net.neoforged.neoforge.transfer.item.ItemResource r, int n,
+                                         net.neoforged.neoforge.transfer.transaction.TransactionContext tx) {
+                var t = t();
+                return t == null || !passes(r) ? 0 : t.extract(i, r, n, tx);
+            }
+        };
+
     @Override
     public void serverTick() {}
 

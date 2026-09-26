@@ -1,12 +1,8 @@
 {
  "type": "minecraft:crafting_shapeless",
  "ingredients": [
-  {
-   "item": "omnilogistics:logistics_card"
-  },
-  {
-   "item": "minecraft:dispenser"
-  }
+  "omnilogistics:logistics_card",
+  "minecraft:dispenser"
  ],
  "result": {
   "id": "omnilogistics:activator_card",

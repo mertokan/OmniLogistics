@@ -31,6 +31,8 @@ import java.util.List;
  * so that a move inside a transaction happens at once and is undone if the transaction aborts. A handler of ours met
  * again through a lookup is unwrapped instead of wrapped twice.
  *
+ * Our own lookups use views of our own ({@code Legacy*}) that JOIN an open transaction instead of opening a root one.
+ *
  * ponytail: eager apply + undo log, like Fabric's legacy inventory wrappers. Undo of an insert is an extract, so a
  * handler that refuses extraction cannot roll back an aborted insert; the mod itself always commits.
  */
@@ -41,17 +43,126 @@ public final class Caps {
 
     public static @Nullable IItemHandler items(Level level, BlockPos pos, @Nullable Direction side) {
         ResourceHandler<ItemResource> h = level.getCapability(Capabilities.Item.BLOCK, pos, side);
-        return h == null ? null : h instanceof Items own ? own.legacy : IItemHandler.of(h);
+        return h == null ? null : h instanceof Items own ? own.legacy : new LegacyItems(h);
     }
 
     public static @Nullable IFluidHandler fluids(Level level, BlockPos pos, @Nullable Direction side) {
         ResourceHandler<FluidResource> h = level.getCapability(Capabilities.Fluid.BLOCK, pos, side);
-        return h == null ? null : h instanceof Fluids own ? own.legacy : IFluidHandler.of(h);
+        return h == null ? null : h instanceof Fluids own ? own.legacy : new LegacyFluids(h);
     }
 
     public static @Nullable IEnergyStorage energy(Level level, BlockPos pos, @Nullable Direction side) {
         EnergyHandler h = level.getCapability(Capabilities.Energy.BLOCK, pos, side);
-        return h == null ? null : h instanceof Energy own ? own.legacy : IEnergyStorage.of(h);
+        return h == null ? null : h instanceof Energy own ? own.legacy : new LegacyEnergy(h);
+    }
+
+    /**
+     * The transaction a legacy call should join. NeoForge's own legacy adapters always open a ROOT transaction, which
+     * crashes the moment one of our handlers is asked to move something while a caller's transaction is already open
+     * - a vanilla hopper feeding a Distributor that forwards into a chest does exactly that. Joining the open one as a
+     * nested transaction keeps every move inside the caller's commit or rollback.
+     */
+    @SuppressWarnings("deprecation")
+    private static net.neoforged.neoforge.transfer.transaction.@Nullable TransactionContext outer() {
+        return net.neoforged.neoforge.transfer.transaction.Transaction.getLifecycle()
+            == net.neoforged.neoforge.transfer.transaction.Transaction.Lifecycle.OPEN
+            ? net.neoforged.neoforge.transfer.transaction.Transaction.getCurrentOpenedTransaction() : null;
+    }
+
+    private static net.neoforged.neoforge.transfer.transaction.Transaction tx() {
+        return net.neoforged.neoforge.transfer.transaction.Transaction.open(outer());
+    }
+
+    private record LegacyItems(ResourceHandler<ItemResource> h) implements IItemHandler {
+        @Override public int getSlots() { return h.size(); }
+        @Override public ItemStack getStackInSlot(int i) { return h.getResource(i).toStack(h.getAmountAsInt(i)); }
+        @Override public int getSlotLimit(int i) { return h.getCapacityAsInt(i, ItemResource.EMPTY); }
+        @Override public boolean isItemValid(int i, ItemStack stack) { return h.isValid(i, ItemResource.of(stack)); }
+
+        @Override
+        public ItemStack insertItem(int i, ItemStack stack, boolean simulate) {
+            if (stack.isEmpty()) return ItemStack.EMPTY;
+            try (var t = tx()) {
+                int n = h.insert(i, ItemResource.of(stack), stack.getCount(), t);
+                if (!simulate) t.commit();
+                return n >= stack.getCount() ? ItemStack.EMPTY : stack.copyWithCount(stack.getCount() - n);
+            }
+        }
+
+        @Override
+        public ItemStack extractItem(int i, int amount, boolean simulate) {
+            ItemResource r = h.getResource(i);
+            if (amount <= 0 || r.isEmpty()) return ItemStack.EMPTY;
+            try (var t = tx()) {
+                int n = h.extract(i, r, Math.min(amount, r.getMaxStackSize()), t);
+                if (!simulate) t.commit();
+                return r.toStack(n);
+            }
+        }
+    }
+
+    private record LegacyFluids(ResourceHandler<FluidResource> h) implements IFluidHandler {
+        @Override public int getTanks() { return h.size(); }
+        @Override public FluidStack getFluidInTank(int i) { return h.getResource(i).toStack(h.getAmountAsInt(i)); }
+        @Override public int getTankCapacity(int i) { return h.getCapacityAsInt(i, FluidResource.EMPTY); }
+        @Override public boolean isFluidValid(int i, FluidStack stack) { return h.isValid(i, FluidResource.of(stack)); }
+
+        @Override
+        public int fill(FluidStack stack, FluidAction action) {
+            if (stack.isEmpty()) return 0;
+            try (var t = tx()) {
+                int n = h.insert(FluidResource.of(stack), stack.getAmount(), t);
+                if (action.execute()) t.commit();
+                return n;
+            }
+        }
+
+        @Override
+        public FluidStack drain(FluidStack stack, FluidAction action) {
+            if (stack.isEmpty()) return FluidStack.EMPTY;
+            FluidResource r = FluidResource.of(stack);
+            try (var t = tx()) {
+                int n = h.extract(r, stack.getAmount(), t);
+                if (action.execute()) t.commit();
+                return r.toStack(n);
+            }
+        }
+
+        @Override
+        public FluidStack drain(int max, FluidAction action) {
+            for (int i = 0; i < h.size(); i++) {
+                FluidResource r = h.getResource(i);
+                if (!r.isEmpty() && h.getAmountAsLong(i) > 0) return drain(r.toStack(max), action);
+            }
+            return FluidStack.EMPTY;
+        }
+    }
+
+    private record LegacyEnergy(EnergyHandler h) implements IEnergyStorage {
+        @Override public int getEnergyStored() { return h.getAmountAsInt(); }
+        @Override public int getMaxEnergyStored() { return h.getCapacityAsInt(); }
+        @Override public boolean canExtract() { return true; }    // the handler answers with 0 when it will not
+        @Override public boolean canReceive() { return true; }
+
+        @Override
+        public int receiveEnergy(int max, boolean simulate) {
+            if (max <= 0) return 0;
+            try (var t = tx()) {
+                int n = h.insert(max, t);
+                if (!simulate) t.commit();
+                return n;
+            }
+        }
+
+        @Override
+        public int extractEnergy(int max, boolean simulate) {
+            if (max <= 0) return 0;
+            try (var t = tx()) {
+                int n = h.extract(max, t);
+                if (!simulate) t.commit();
+                return n;
+            }
+        }
     }
 
     // ---- offering ours ----------------------------------------------------------------------------------------------

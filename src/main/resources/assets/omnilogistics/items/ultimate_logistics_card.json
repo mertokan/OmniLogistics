@@ -1,0 +1,30 @@
+{
+ "model": {
+  "type": "minecraft:condition",
+  "property": "omnilogistics:bound",
+  "on_true": {
+   "type": "minecraft:condition",
+   "property": "omnilogistics:insert",
+   "on_true": {
+    "type": "minecraft:model",
+    "model": "omnilogistics:item/card_x64_insert_bound"
+   },
+   "on_false": {
+    "type": "minecraft:model",
+    "model": "omnilogistics:item/card_x64_extract_bound"
+   }
+  },
+  "on_false": {
+   "type": "minecraft:condition",
+   "property": "omnilogistics:insert",
+   "on_true": {
+    "type": "minecraft:model",
+    "model": "omnilogistics:item/card_x64_insert"
+   },
+   "on_false": {
+    "type": "minecraft:model",
+    "model": "omnilogistics:item/ultimate_logistics_card"
+   }
+  }
+ }
+}
