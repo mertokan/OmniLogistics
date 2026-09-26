@@ -62,7 +62,9 @@ NeoForge eşya, enerji veya sıvı yeteneğini açan her mod, onun için tek sat
 
 ## Gereksinimler
 
-Minecraft 1.21.1, NeoForge 21.1+. İstemci ve sunucu. MIT lisansı.
+Minecraft **1.21.1** (NeoForge 21.1+) ya da **26.1.2** (NeoForge 26.1.2+). İstemci ve sunucu. MIT lisansı.
+
+26.1.2'de oyun içi testler AE2 ve Powah ile çalışıyor; Mekanism ve Actually Additions'ın henüz 26.1.2 sürümü yok; mod ikisine de ihtiyaç duymuyor.
 
 ## Modun icindeki her sey
 

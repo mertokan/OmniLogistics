@@ -478,6 +478,42 @@ holds on a fresh sword - serialized to one compound keyed by component id (`NbtR
 The idea comes from LogisticsNetwork's NBT filter. That mod is All Rights Reserved, so nothing was taken from its code;
 this is a separate implementation that goes further in two places (any-element paths, numeric-by-value equality).
 
+## 22. Minecraft 26.1.2 (2026-09-26)
+
+Minecraft switched to year-numbered versions after 1.21.11, and by 26.1.2 AE2, Powah, JEI and Patchouli all ship
+for it (Mekanism, Actually Additions and Jade do not yet). The port lives on the `mc/26.1.2` branch, checked out as a
+git worktree in `ports/26.1.2` so both versions build side by side; `main` stays 1.21.1. Java 25, Gradle 9.2.1,
+NeoForge 26.1.2.109, JEI 29.
+
+What changed, and the one decision behind each:
+
+- **Capabilities are transactions.** `Capabilities.Item/Fluid/Energy.BLOCK` hand out `ResourceHandler` /
+  `EnergyHandler`. The mod still moves things with the slot interfaces, so `core/Caps` is the only seam: lookups come
+  back as legacy views that JOIN an open transaction (NeoForge's own adapters open a root one, which crashes when a
+  hopper feeding one of our blocks is already inside a transaction), and what we expose is wrapped in an undo journal
+  that applies a move at once and reverses it if the caller rolls back. The Inventory Exposer, which only forwards,
+  forwards the caller's transaction instead.
+- **Block entities save through `ValueOutput` / `ValueInput`**; handlers serialize themselves into child outputs.
+- **GUI**: `GuiGraphicsExtractor`, input as event records, text needs an alpha channel (a colour without one is
+  simply not drawn), "on top of the slots" is a new stratum instead of a z offset, and `blit` takes a pipeline first -
+  the old argument order still compiles against a different overload and draws garbage in the corner.
+- **Block entity renderers** extract a render state, then submit; items go through `ItemStackRenderState`, custom
+  quads through `submitCustomGeometry`, the monitor's text through `submitText`. The card locator's box draws with a
+  pipeline of its own that has no depth test.
+- **Game tests** are registered functions; `GameTests` finds every `@OmniTest` method. The two JUnit suites became
+  game tests too, because an ItemStack's default components are only bound when a server loads its registries.
+- **Items** get model definitions in `assets/omnilogistics/items`; the card's EXTRACT/INSERT and bound looks are two
+  conditional properties. `gen_resources.py` reads the NeoForge version from `build.gradle` and writes whichever
+  format that version wants, so one generator serves both branches.
+- **Data**: in 26.1 an enchantment's level sits directly under `minecraft:enchantments`, not under `levels`. NBT rules
+  picked from the reference item follow automatically; only hand-written paths had to change.
+
+Verified on 26.1.2: 49/49 game tests, the GUI self-test (every screen opens and draws), and the showcase world with
+AE2 26.1: 10/10 applicable checks, including five Molecular Assemblers in CLUSTER mode and the pattern-slot guard.
+
+Keeping two versions: features land on `main` and are cherry-picked onto `mc/26.1.2`; the conflicts are where the two
+APIs differ, which is exactly the list above.
+
 ## Build
 
 Needs JDK 21 on PATH (none found on this machine; CurseForge only ships a JRE) and Gradle 8.8+:

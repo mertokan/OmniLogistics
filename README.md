@@ -3,7 +3,7 @@
 
 # OmniLogistics
 
-**One card system for every machine in your pack.** Minecraft 1.21.1 / NeoForge 21.1+, MIT.
+**One card system for every machine in your pack.** Minecraft 1.21.1 and 26.1.2, NeoForge, MIT.
 
 Bind a Logistics Card to any block by sneak-clicking it, drop the card into a pipe, a Wireless Router or a Batch
 Distributor, and the mod finds the working face of that machine by itself - on any mod's block, with no side
@@ -18,6 +18,20 @@ nobody has written yet already work.
 * **Screenshots:** [docs/press](docs/press)
 
 ![OmniLogistics](docs/press/omni_press_hero.png)
+
+## Versions
+
+| Minecraft | NeoForge | Branch | Jar | Checked in-world against |
+| --- | --- | --- | --- | --- |
+| 1.21.1 | 21.1.249 | `main` | `omnilogistics-1.21.1-<version>.jar` | AE2, Mekanism, Actually Additions, Powah, JEI, Jade, Patchouli |
+| 26.1.2 | 26.1.2.109 | `mc/26.1.2` | `omnilogistics-26.1.2-<version>.jar` | AE2, Powah, JEI, Patchouli |
+
+Mekanism, Actually Additions and Jade have no 26.1.2 build yet; the mod does not depend on any of them, so nothing is
+lost but their bays in the test world. The port is described in [ARCHITECTURE.md](ARCHITECTURE.md), section 22.
+
+```bash
+git worktree add ports/26.1.2 mc/26.1.2   # both versions side by side; ports/ is ignored on main
+```
 
 ## Building
 
