@@ -7,3 +7,4 @@ runs/
 libs/                 # third-party jars used for local testing, not ours to redistribute
 tools/__pycache__/
 *.log
+ports/                # version ports live in their own git worktrees (branch mc/<version>)
