@@ -215,7 +215,7 @@ public final class Showcase {
             if (sl.getBlockEntity(new BlockPos(x - 10, y, b5)) instanceof ExposerBlockEntity ex) {
                 byte[] m = new byte[6];
                 m[Direction.NORTH.ordinal()] = 1;
-                ex.applyConfig(m, ComponentPredicateEngine.HAS_ENCHANTS, List.of(), List.of());
+                ex.applyConfig(m, ComponentPredicateEngine.HAS_ENCHANTS, List.of(), List.of(), List.of());
             }
             // (x-9, b5) stays AIR on purpose: the player drops a fluix cable there (it touches the Drive to the south)
             // and puts a Storage Bus on its west face, pointing at the Exposer.

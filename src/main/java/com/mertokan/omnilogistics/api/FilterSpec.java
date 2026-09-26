@@ -11,13 +11,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Everything a filter needs: reference stacks, flag bitmask, chosen item tags, chosen component keys.
+ * Everything a filter needs: reference stacks, flag bitmask, chosen item tags, chosen component keys, NBT rules.
  * Immutable; hosts replace the whole record. A stack passes when it matches ANY reference (the tag / enchant / mod
  * flags still apply on top), so one card can whitelist up to its item's capacity - 1, 4, 16 or 64 references.
+ * The NBT rules are one more condition on top of that, and they need no reference at all.
  */
-public record FilterSpec(List<ItemStack> refs, int flags, List<String> tags, List<String> components) {
+public record FilterSpec(List<ItemStack> refs, int flags, List<String> tags, List<String> components, List<NbtRule> rules) {
     public static final int MAX_COMPONENTS = 16, MAX_TAGS = 16, MAX_REFS = 64;
     public static final FilterSpec EMPTY = new FilterSpec(List.of(), ComponentPredicateEngine.DEFAULT, List.of(), List.of());
+
+    public FilterSpec(List<ItemStack> refs, int flags, List<String> tags, List<String> components) {
+        this(refs, flags, tags, components, List.of());
+    }
 
     /**
      * The same filter, asked about a fluid: a reference container (a water bucket, a tank item) names its fluid, and a
@@ -65,12 +70,12 @@ public record FilterSpec(List<ItemStack> refs, int flags, List<String> tags, Lis
         while (out.size() <= index) out.add(ItemStack.EMPTY);
         out.set(index, stack.copyWithCount(1));
         while (!out.isEmpty() && out.get(out.size() - 1).isEmpty()) out.remove(out.size() - 1);
-        return new FilterSpec(List.copyOf(out), flags, tags, components);
+        return new FilterSpec(List.copyOf(out), flags, tags, components, rules);
     }
 
     /** Server-side sanitising of client input. */
-    public FilterSpec withConfig(int newFlags, List<String> newTags, List<String> newComponents) {
-        return new FilterSpec(refs, newFlags, clean(newTags, MAX_TAGS), clean(newComponents, MAX_COMPONENTS));
+    public FilterSpec withConfig(int newFlags, List<String> newTags, List<String> newComponents, List<NbtRule> newRules) {
+        return new FilterSpec(refs, newFlags, clean(newTags, MAX_TAGS), clean(newComponents, MAX_COMPONENTS), NbtRule.clean(newRules));
     }
 
     private static List<String> clean(List<String> in, int max) {
@@ -88,6 +93,8 @@ public record FilterSpec(List<ItemStack> refs, int flags, List<String> tags, Lis
         tag.putInt("Flags", flags);
         tag.put("Tags", strings(tags));
         tag.put("Components", strings(components));
+        if (!rules.isEmpty())
+            NbtRule.CODEC.listOf().encodeStart(net.minecraft.nbt.NbtOps.INSTANCE, rules).result().ifPresent(t -> tag.put("Nbt", t));
     }
 
     public static FilterSpec load(CompoundTag tag, HolderLookup.Provider regs) {
@@ -95,8 +102,11 @@ public record FilterSpec(List<ItemStack> refs, int flags, List<String> tags, Lis
         if (tag.contains("Filters"))
             for (Tag t : tag.getList("Filters", Tag.TAG_COMPOUND)) refs.add(ItemStack.parseOptional(regs, (CompoundTag) t));
         else if (tag.contains("Filter")) refs.add(ItemStack.parseOptional(regs, tag.getCompound("Filter")));   // pre-multi saves
+        List<NbtRule> rules = tag.contains("Nbt")
+            ? NbtRule.CODEC.listOf().parse(net.minecraft.nbt.NbtOps.INSTANCE, tag.get("Nbt")).result().orElse(List.of())
+            : List.of();
         return new FilterSpec(List.copyOf(refs), tag.getInt("Flags"), strings(tag.getList("Tags", Tag.TAG_STRING)),
-            strings(tag.getList("Components", Tag.TAG_STRING)));
+            strings(tag.getList("Components", Tag.TAG_STRING)), NbtRule.clean(rules));
     }
 
     private static ListTag strings(List<String> in) {

@@ -301,6 +301,46 @@ public class MachineGameTests {
         h.succeed();
     }
 
+    /** NBT rules on a router card: only tools worn less than a threshold, and only swords at Sharpness III or better,
+     *  leave the router - with the enchantment check needing the server's registries, which it gets in a real world. */
+    @GameTest(template = "empty", timeoutTicks = 200)
+    public static void nbtRulesPickByDurabilityAndEnchantLevel(GameTestHelper h) {
+        h.setBlock(A, Blocks.CHEST);
+        h.setBlock(B, Blocks.CHEST);
+        RouterBlockEntity be = router(h);
+        be.setInterval(1);
+        var sharp = sharpness(h);
+        ItemStack fresh = new ItemStack(Items.IRON_SWORD), worn = new ItemStack(Items.IRON_SWORD), blunt = new ItemStack(Items.IRON_SWORD);
+        worn.set(net.minecraft.core.component.DataComponents.DAMAGE, 200);
+        fresh.enchant(sharp, 4);
+        worn.enchant(sharp, 4);
+        blunt.enchant(sharp, 1);
+        ChestBlockEntity src = h.getBlockEntity(A);
+        src.setItem(0, worn);
+        src.setItem(1, blunt);
+        src.setItem(2, fresh);
+        ItemStack pull = card(h, CardKind.ITEM, A, LogisticsCardItem.EXTRACT);   // the rules sit on the pulling card
+        CardConfig.apply(pull, CardConfig.modes(pull), ComponentPredicateEngine.MATCH_NBT, List.of(), List.of(), List.of(
+            new com.mertokan.omnilogistics.api.NbtRule(List.of("minecraft:damage"), com.mertokan.omnilogistics.api.NbtRule.Op.LT, "50", true),
+            new com.mertokan.omnilogistics.api.NbtRule(List.of("minecraft:enchantments", "levels", "minecraft:sharpness"),
+                com.mertokan.omnilogistics.api.NbtRule.Op.GE, "3", true)));
+        be.cards.setStackInSlot(0, pull);
+        be.cards.setStackInSlot(1, card(h, CardKind.ITEM, B, LogisticsCardItem.INSERT));
+        h.runAfterDelay(60, () -> {
+            ChestBlockEntity dst = h.getBlockEntity(B);
+            int moved = 0;
+            for (int i = 0; i < dst.getContainerSize(); i++) {
+                ItemStack s = dst.getItem(i);
+                if (s.isEmpty()) continue;
+                moved++;
+                h.assertTrue(s.getDamageValue() == 0 && ComponentPredicateEngine.enchantmentsOf(s).getLevel(sharp) == 4,
+                    "only the fresh Sharpness IV sword may move, got " + s + " " + s.getComponentsPatch());
+            }
+            h.assertTrue(moved == 1, "exactly one sword should have moved, moved " + moved);
+            h.succeed();
+        });
+    }
+
     /** A fluid filter names its fluid with a container: a water bucket in the reference slot means water, not lava. */
     @GameTest(template = "empty", timeoutTicks = 20)
     public static void fluidCardFiltersByBucket(GameTestHelper h) {
@@ -334,7 +374,7 @@ public class MachineGameTests {
         ExposerBlockEntity ex = h.getBlockEntity(P);
         byte[] modes = new byte[6];
         modes[Direction.WEST.ordinal()] = 1;
-        ex.applyConfig(modes, ComponentPredicateEngine.HAS_ENCHANTS, List.of(), List.of());
+        ex.applyConfig(modes, ComponentPredicateEngine.HAS_ENCHANTS, List.of(), List.of(), List.of());
         h.runAfterDelay(120, () -> {
             HopperBlockEntity hop = h.getBlockEntity(hopper);
             boolean gotSword = false;

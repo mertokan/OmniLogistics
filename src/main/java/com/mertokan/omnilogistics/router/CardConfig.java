@@ -36,16 +36,18 @@ public final class CardConfig {
      *  bug, not a feature. */
     public static void copyFilter(ItemStack src, ItemStack dst) {
         FilterSpec f = LogisticsCardItem.spec(src);
-        apply(dst, modes(src), f.flags(), f.tags(), f.components());
+        apply(dst, modes(src), f.flags(), f.tags(), f.components(), f.rules());
         int cap = LogisticsCardItem.capacity(dst);
         for (int i = 0; i < cap; i++) setFilter(dst, i, i < f.refs().size() ? f.refs().get(i) : ItemStack.EMPTY);
     }
 
-    public static void apply(ItemStack card, byte[] modes, int flags, List<String> tags, List<String> components) {
-        FilterSpec s = LogisticsCardItem.spec(card).withConfig(flags, tags, components);
+    public static void apply(ItemStack card, byte[] modes, int flags, List<String> tags, List<String> components,
+                             List<com.mertokan.omnilogistics.api.NbtRule> rules) {
+        FilterSpec s = LogisticsCardItem.spec(card).withConfig(flags, tags, components, rules);
         if (modes.length > 0) card.set(OmniLogistics.CARD_MODE.get(), Math.floorMod(modes[0], 2));
         card.set(OmniLogistics.CARD_FLAGS.get(), s.flags());
         if (s.tags().isEmpty()) card.remove(OmniLogistics.CARD_TAGS.get()); else card.set(OmniLogistics.CARD_TAGS.get(), s.tags());
         if (s.components().isEmpty()) card.remove(OmniLogistics.CARD_COMPONENTS.get()); else card.set(OmniLogistics.CARD_COMPONENTS.get(), s.components());
+        if (s.rules().isEmpty()) card.remove(OmniLogistics.CARD_NBT.get()); else card.set(OmniLogistics.CARD_NBT.get(), s.rules());
     }
 }

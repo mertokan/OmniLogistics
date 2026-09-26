@@ -224,6 +224,10 @@ public class OmniLogistics {
     public static final Supplier<DataComponentType<List<String>>> CARD_COMPONENTS = COMPONENTS.register("card_components",
         () -> DataComponentType.<List<String>>builder().persistent(Codec.STRING.listOf())
             .networkSynchronized(ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list(FilterSpec.MAX_COMPONENTS))).build());
+    public static final Supplier<DataComponentType<List<com.mertokan.omnilogistics.api.NbtRule>>> CARD_NBT = COMPONENTS.register("card_nbt",
+        () -> DataComponentType.<List<com.mertokan.omnilogistics.api.NbtRule>>builder()
+            .persistent(com.mertokan.omnilogistics.api.NbtRule.CODEC.listOf())
+            .networkSynchronized(com.mertokan.omnilogistics.api.NbtRule.LIST_STREAM_CODEC).build());
     /** Generic "socket" component: item stacks embedded in gear. The Component Module extracts them; datapacks and tests can use it. */
     public static final Supplier<DataComponentType<List<ItemStack>>> EMBEDDED_ITEMS = COMPONENTS.register("embedded_items",
         () -> DataComponentType.<List<ItemStack>>builder().persistent(ItemStack.CODEC.listOf())

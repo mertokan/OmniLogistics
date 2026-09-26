@@ -2,10 +2,13 @@ package com.mertokan.omnilogistics.core;
 
 import com.mertokan.omnilogistics.api.ComponentPredicateEngine;
 import com.mertokan.omnilogistics.api.FilterSpec;
+import com.mertokan.omnilogistics.api.NbtRule;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,9 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Filter GUI: ghost slot, side/mode buttons, 3x3 flag grid, and two pickers
- * (item tags / component keys) that open as an overlay listing what the reference item actually has.
- * Scroll moves the cursor, Enter or click adds/removes the entry; both lists are multi-select.
+ * Filter GUI: ghost slots, side/mode buttons, 3x3 flag grid, and three overlays opened from the bottom row: item tags
+ * and component keys (multi-select lists of what the reference item actually has) and the NBT rules editor.
+ * The NBT editor lists the rules; "+ Pick" opens a browser of every value inside the reference item, and clicking one
+ * turns it into a rule that can then be changed to >=, !=, contains and so on.
  */
 public class FilterScreen extends DarkScreen<FilterMenu> {
     public static final int WIDTH = 256, HEIGHT = 242;
@@ -30,16 +34,24 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
     private static final int ON_PUSH = 0xFF9C5A10;
     private static final int KEY_ESC = 256, KEY_ENTER = 257, KEY_KP_ENTER = 335, KEY_UP = 265, KEY_DOWN = 264;
 
-    private enum Picker { NONE, TAG, COMPONENT }
+    private enum Picker { NONE, TAG, COMPONENT, NBT, NBT_PICK }
     private static final int PICK_X = 28, PICK_Y = 36, PICK_W = 200, PICK_H = 132, ROW_H = 11, ROWS = 10;
+    /** The NBT overlays are wider: a rule row holds a path, an operator and a value side by side. */
+    private static final int NBT_X = 6, NBT_W = 244, NBT_H = 150, RULE_H = 12, RULE_ROWS = 9, PICK_ROWS = 11;
+    private static final int COL_PATH = 16, COL_OP = 122, COL_VALUE = 166, COL_DEL = 231;
 
     private final int shift;
     private final ToggleButton[] modeButtons;
     private final ToggleButton[] flagButtons = new ToggleButton[FLAG.length];
-    private ToggleButton tagButton, compButton;
+    private ToggleButton tagButton, compButton, nbtButton;
     private Picker picker = Picker.NONE;
     private int cursor, scroll;
     private ComponentPredicateEngine.@Nullable ComponentInfo hoverValue;
+    private @Nullable Component hoverTip;
+    private EditBox valueBox;
+    private int editing = -1;
+    private List<NbtRule.Leaf> leaves = List.of();
+    private ItemStack leavesOf = ItemStack.EMPTY;
 
     /** One panel sheet per grid height: 1 and 4 references fit the base panel, 16 adds a row, 64 adds seven. */
     private static String sheet(int refs) {
@@ -77,28 +89,35 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
             flagButtons[i].setTooltip(Tooltip.create(Component.translatable("tooltip.omnilogistics.flag." + FLAG_KEY[i])));
             addRenderableWidget(flagButtons[i]);
         }
-        tagButton = addRenderableWidget(new ToggleButton(leftPos + 8, topPos + 130 + shift, 120, 18, () -> open(Picker.TAG)));
+        // the bottom row lines up with the 3x3 grid above it
+        tagButton = addRenderableWidget(new ToggleButton(leftPos + 8, topPos + 130 + shift, 78, 18, () -> open(Picker.TAG)));
         tagButton.setTooltip(Tooltip.create(Component.translatable("tooltip.omnilogistics.pick_tag")));
-        compButton = addRenderableWidget(new ToggleButton(leftPos + 130, topPos + 130 + shift, 118, 18, () -> open(Picker.COMPONENT)));
+        compButton = addRenderableWidget(new ToggleButton(leftPos + 90, topPos + 130 + shift, 78, 18, () -> open(Picker.COMPONENT)));
         compButton.setTooltip(Tooltip.create(Component.translatable("tooltip.omnilogistics.pick_components")));
+        nbtButton = addRenderableWidget(new ToggleButton(leftPos + 172, topPos + 130 + shift, 78, 18, () -> open(Picker.NBT)));
+        nbtButton.setTooltip(Tooltip.create(Component.translatable("tooltip.omnilogistics.pick_nbt")));
+        valueBox = new EditBox(font, 0, 0, COL_DEL - COL_VALUE - 4, 10, Component.empty());
+        valueBox.setBordered(false);
+        valueBox.setMaxLength(NbtRule.MAX_VALUE);
+        valueBox.setTextColor(0xFFFFFF);
     }
 
     // ---- sending ----------------------------------------------------------------
 
-    private void send(byte[] modes, int flags, List<String> tags, List<String> comps) {
-        PacketDistributor.sendToServer(FilterConfigPayload.of(menu, modes, flags, tags, comps));
+    private void send(byte[] modes, int flags, List<String> tags, List<String> comps, List<NbtRule> rules) {
+        PacketDistributor.sendToServer(FilterConfigPayload.of(menu, modes, flags, tags, comps, rules));
     }
 
     private void cycle(int i) {
         byte[] m = menu.modes();
         m[i] = (byte) ((m[i] + 1) % menu.layout.modeNames.length);
         FilterSpec s = menu.spec();
-        send(m, s.flags(), s.tags(), s.components());
+        send(m, s.flags(), s.tags(), s.components(), s.rules());
     }
 
     private void toggle(int flag) {
         FilterSpec s = menu.spec();
-        send(menu.modes(), s.flags() ^ flag, s.tags(), s.components());
+        send(menu.modes(), s.flags() ^ flag, s.tags(), s.components(), s.rules());
     }
 
     /** Add or remove the entry; the matching flag follows whether the list is empty. */
@@ -109,13 +128,34 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
         if (!list.remove(key)) list.add(key);
         int flag = tags ? ComponentPredicateEngine.MATCH_TAG : ComponentPredicateEngine.MATCH_SELECTED;
         int flags = list.isEmpty() ? s.flags() & ~flag : s.flags() | flag;
-        send(menu.modes(), flags, tags ? list : s.tags(), tags ? s.components() : list);
+        send(menu.modes(), flags, tags ? list : s.tags(), tags ? s.components() : list, s.rules());
     }
 
-    // ---- picker overlay ---------------------------------------------------------
+    /** New rule list; MATCH_NBT simply follows whether there are any rules, the way the tag / component flags do. */
+    private void sendRules(List<NbtRule> rules, boolean any) {
+        FilterSpec s = menu.spec();
+        int flags = s.flags() & ~(ComponentPredicateEngine.MATCH_NBT | ComponentPredicateEngine.NBT_ANY);
+        if (!rules.isEmpty()) flags |= ComponentPredicateEngine.MATCH_NBT;
+        if (any) flags |= ComponentPredicateEngine.NBT_ANY;
+        send(menu.modes(), flags, s.tags(), s.components(), rules);
+    }
+
+    private boolean nbtAny() {
+        return (menu.spec().flags() & ComponentPredicateEngine.NBT_ANY) != 0;
+    }
+
+    private void editRule(int i, java.util.function.UnaryOperator<NbtRule> change) {
+        List<NbtRule> rules = new ArrayList<>(menu.spec().rules());
+        if (i < 0 || i >= rules.size()) return;
+        if (change == null) rules.remove(i); else rules.set(i, change.apply(rules.get(i)));
+        sendRules(rules, nbtAny());
+    }
+
+    // ---- overlays ---------------------------------------------------------------
 
     private void open(Picker p) {
-        picker = picker == p ? Picker.NONE : p;
+        commitValue();
+        picker = picker == p || (p == Picker.NBT && picker == Picker.NBT_PICK) ? Picker.NONE : p;
         cursor = scroll = 0;
     }
 
@@ -128,6 +168,25 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
         };
     }
 
+    /** Every value inside the first reference item, recomputed only when that item changes. */
+    private List<NbtRule.Leaf> leaves() {
+        ItemStack ref = menu.spec().ref();
+        if (!ItemStack.matches(ref, leavesOf)) {
+            leavesOf = ref.copy();
+            leaves = ref.isEmpty() || minecraft == null || minecraft.level == null
+                ? List.of() : NbtRule.leaves(ref, minecraft.level.registryAccess());
+        }
+        return leaves;
+    }
+
+    private int count() {
+        return picker == Picker.NBT_PICK ? leaves().size() : options().size();
+    }
+
+    private int visibleRows() {
+        return picker == Picker.NBT_PICK ? PICK_ROWS : ROWS;
+    }
+
     private boolean selected(String opt) {
         FilterSpec s = menu.spec();
         return (picker == Picker.TAG ? s.tags() : s.components()).contains(opt);
@@ -135,19 +194,74 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
 
     private void moveCursor(int delta, int count) {
         if (count == 0) return;
+        int rows = visibleRows();
         cursor = Math.floorMod(cursor + delta, count);
         if (cursor < scroll) scroll = cursor;
-        if (cursor >= scroll + ROWS) scroll = cursor - ROWS + 1;
+        if (cursor >= scroll + rows) scroll = cursor - rows + 1;
     }
 
+    private void choose(int index) {
+        if (picker == Picker.NBT_PICK) {
+            List<NbtRule.Leaf> all = leaves();
+            if (index < 0 || index >= all.size()) return;
+            NbtRule.Leaf leaf = all.get(index);
+            List<NbtRule> rules = new ArrayList<>(menu.spec().rules());
+            if (rules.size() < NbtRule.MAX_RULES) rules.add(new NbtRule(leaf.path(), NbtRule.Op.EQ, leaf.value(), true));
+            sendRules(rules, nbtAny());
+            picker = Picker.NBT;
+            cursor = scroll = 0;
+        } else {
+            List<String> opts = options();
+            if (index >= 0 && index < opts.size()) togglePick(opts.get(index));
+        }
+    }
+
+    private int ox() { return leftPos + (isNbt() ? NBT_X : PICK_X); }
+    private int oy() { return topPos + PICK_Y + shift; }
+    private int ow() { return isNbt() ? NBT_W : PICK_W; }
+    private int oh() { return isNbt() ? NBT_H : PICK_H; }
+    private boolean isNbt() { return picker == Picker.NBT || picker == Picker.NBT_PICK; }
+
+    private void frame(GuiGraphics g, Component title) {
+        frame(g, title, isNbt() && picker == Picker.NBT ? 170 : 24);
+    }
+
+    /** Overlay box with a title bar; {@code room} is what the header chips on the right take. */
+    private void frame(GuiGraphics g, Component title, int room) {
+        int x = ox(), y = oy(), w = ow(), h = oh();
+        g.fill(x - 2, y - 2, x + w + 2, y + h + 2, 0xF00C0E11);
+        g.fill(x, y, x + w, y + h, 0xFF1A1E25);
+        g.renderOutline(x, y, w, h, 0xFF3FD3FF);
+        g.fill(x, y, x + w, y + 13, 0xFF232830);
+        g.drawString(font, font.plainSubstrByWidth(title.getString(), w - room), x + 5, y + 3, TEXT, false);
+    }
+
+    private void scrollbar(GuiGraphics g, int x, int y, int rows, int rowH, int total) {
+        int max = total - rows;
+        if (max <= 0) return;
+        int trackH = rows * rowH, thumb = Math.max(8, trackH * rows / total);
+        int ty = y + (trackH - thumb) * scroll / max;
+        g.fill(x, y, x + 3, y + trackH, 0xFF0C0E11);
+        g.fill(x, ty, x + 3, ty + thumb, 0xFF3FD3FF);
+    }
+
+    private static boolean in(double mx, double my, int x, int y, int w, int h) {
+        return mx >= x && mx < x + w && my >= y && my < y + h;
+    }
+
+    /** A flat text button inside an overlay header. */
+    private void chip(GuiGraphics g, int x, int y, int w, Component label, boolean on, int mx, int my) {
+        boolean hover = in(mx, my, x, y, w, 11);
+        g.fill(x, y, x + w, y + 11, on ? 0xFF1F7A8C : hover ? 0xFF2F3640 : 0xFF2A2F37);
+        g.renderOutline(x, y, w, 11, 0xFF3A424C);
+        g.drawCenteredString(font, label, x + w / 2, y + 2, TEXT);
+    }
+
+    // ---- tag / component picker ---------------------------------------------------
+
     private void renderPicker(GuiGraphics g, int mouseX, int mouseY) {
-        int x = leftPos + PICK_X, y = topPos + PICK_Y + shift;
-        g.fill(x - 2, y - 2, x + PICK_W + 2, y + PICK_H + 2, 0xF00C0E11);
-        g.fill(x, y, x + PICK_W, y + PICK_H, 0xFF1A1E25);
-        g.renderOutline(x, y, PICK_W, PICK_H, 0xFF3FD3FF);
-        g.fill(x, y, x + PICK_W, y + 13, 0xFF232830);
-        Component title = Component.translatable(picker == Picker.TAG ? "gui.omnilogistics.pick_tag" : "gui.omnilogistics.pick_components");
-        g.drawString(font, font.plainSubstrByWidth(title.getString(), PICK_W - 10), x + 5, y + 3, TEXT, false);
+        int x = ox(), y = oy();
+        frame(g, Component.translatable(picker == Picker.TAG ? "gui.omnilogistics.pick_tag" : "gui.omnilogistics.pick_components"));
         List<String> opts = options();
         List<ComponentPredicateEngine.ComponentInfo> infos = picker == Picker.COMPONENT
             ? ComponentPredicateEngine.componentInfos(menu.spec().ref()) : List.of();
@@ -162,7 +276,7 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
             int idx = i + scroll;
             String opt = opts.get(idx);
             int ry = y + 15 + i * ROW_H;
-            boolean hover = mouseX >= x && mouseX < x + PICK_W && mouseY >= ry && mouseY < ry + ROW_H;
+            boolean hover = in(mouseX, mouseY, x, ry, PICK_W, ROW_H);
             boolean on = selected(opt);
             if (on) g.fill(x + 2, ry, x + PICK_W - 7, ry + ROW_H, 0xFF1F7A8C);
             else if (hover) g.fill(x + 2, ry, x + PICK_W - 7, ry + ROW_H, 0xFF2A2F37);
@@ -177,13 +291,7 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
                 if (hover) hoverValue = info;
             }
         }
-        int max = opts.size() - ROWS;
-        if (max > 0) {
-            int trackH = ROWS * ROW_H, thumb = Math.max(8, trackH * ROWS / opts.size());
-            int ty = y + 15 + (trackH - thumb) * scroll / max;
-            g.fill(x + PICK_W - 5, y + 15, x + PICK_W - 2, y + 15 + trackH, 0xFF0C0E11);
-            g.fill(x + PICK_W - 5, ty, x + PICK_W - 2, ty + thumb, 0xFF3FD3FF);
-        }
+        scrollbar(g, x + PICK_W - 5, y + 15, ROWS, ROW_H, opts.size());
         g.drawString(font, Component.translatable("gui.omnilogistics.pick_hint"), x + 5, y + PICK_H - 10, MUTED, false);
         if (hoverValue != null) {
             List<Component> lines = new ArrayList<>();
@@ -195,19 +303,179 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
         }
     }
 
+    // ---- NBT rules ------------------------------------------------------------------
+
+    private int rowY(int i) { return oy() + 16 + i * RULE_H; }
+    private int headerChip(int slot) { return ox() + NBT_W - 16 - slot * 52; }   // 0 = close, 1 = +Pick, 2 = ALL/ANY
+
+    private void renderRules(GuiGraphics g, int mx, int my) {
+        int x = ox(), y = oy();
+        frame(g, Component.translatable("gui.omnilogistics.nbt.title"));
+        chip(g, headerChip(2) + 2, y + 1, 48, Component.translatable(nbtAny() ? "gui.omnilogistics.nbt.any" : "gui.omnilogistics.nbt.all"), false, mx, my);
+        chip(g, headerChip(1) + 2, y + 1, 48, Component.translatable("gui.omnilogistics.nbt.add"), false, mx, my);
+        chip(g, headerChip(0) + 2, y + 1, 11, Component.literal("×"), false, mx, my);
+        if (in(mx, my, headerChip(2) + 2, y + 1, 48, 11)) hoverTip = Component.translatable("tooltip.omnilogistics.nbt.all_any");
+
+        List<NbtRule> rules = menu.spec().rules();
+        if (rules.isEmpty()) {
+            int ty = y + 22;
+            for (var line : font.split(Component.translatable("gui.omnilogistics.nbt.empty"), NBT_W - 12)) {
+                g.drawString(font, line, x + 6, ty, MUTED, false);
+                ty += 10;
+            }
+        }
+        scroll = Math.max(0, Math.min(scroll, rules.size() - RULE_ROWS));
+        for (int i = 0; i < RULE_ROWS && i + scroll < rules.size(); i++) {
+            int idx = i + scroll;
+            NbtRule r = rules.get(idx);
+            int ry = rowY(i);
+            if (in(mx, my, x, ry, NBT_W, RULE_H)) g.fill(x + 2, ry, x + NBT_W - 2, ry + RULE_H, 0xFF232830);
+            // enabled box
+            g.fill(x + 4, ry + 1, x + 13, ry + 10, 0xFF0C0E11);
+            g.renderOutline(x + 4, ry + 1, 9, 9, 0xFF3A424C);
+            if (r.enabled()) g.fill(x + 6, ry + 3, x + 11, ry + 8, 0xFF3FD3FF);
+            int color = r.enabled() ? TEXT : MUTED;
+            // path
+            String path = NbtRule.pretty(r.path());
+            int pw = COL_OP - COL_PATH - 4;
+            String shown = font.width(path) <= pw ? path : "…" + tail(path, pw - font.width("…"));
+            g.drawString(font, shown, x + COL_PATH, ry + 2, r.hasListStep() ? 0xFFB7E3F0 : color, false);
+            if (in(mx, my, x + COL_PATH, ry, pw, RULE_H))
+                hoverTip = Component.literal(String.join(" / ", r.path())).append(r.hasListStep()
+                    ? Component.literal("\n").append(Component.translatable("tooltip.omnilogistics.nbt.any_index")) : Component.empty());
+            // operator
+            boolean opHover = in(mx, my, x + COL_OP, ry, COL_VALUE - COL_OP - 2, RULE_H);
+            g.fill(x + COL_OP, ry + 1, x + COL_VALUE - 2, ry + RULE_H - 1, opHover ? 0xFF2F3640 : 0xFF12161B);
+            g.drawCenteredString(font, Component.translatable("gui.omnilogistics.nbt.op." + r.op().key()),
+                x + (COL_OP + COL_VALUE - 2) / 2, ry + 2, r.enabled() ? 0xFFFFC04A : MUTED);
+            if (opHover) hoverTip = Component.translatable("tooltip.omnilogistics.nbt.op");
+            // value
+            if (editing != idx) {
+                boolean vHover = in(mx, my, x + COL_VALUE, ry, COL_DEL - COL_VALUE - 3, RULE_H);
+                g.fill(x + COL_VALUE, ry + 1, x + COL_DEL - 3, ry + RULE_H - 1, vHover && r.op().takesValue() ? 0xFF2F3640 : 0xFF12161B);
+                if (r.op().takesValue())
+                    g.drawString(font, font.plainSubstrByWidth(r.value(), COL_DEL - COL_VALUE - 7), x + COL_VALUE + 2, ry + 2, color, false);
+                if (vHover && r.op().takesValue()) hoverTip = Component.literal(r.value());
+            }
+            // delete
+            boolean delHover = in(mx, my, x + COL_DEL, ry, 10, RULE_H);
+            g.drawString(font, "×", x + COL_DEL + 2, ry + 2, delHover ? 0xFFFF6B6B : MUTED, false);
+        }
+        scrollbar(g, x + NBT_W - 4, y + 16, RULE_ROWS, RULE_H, rules.size());
+        if (editing >= scroll && editing < scroll + RULE_ROWS) {
+            int ry = rowY(editing - scroll);
+            g.fill(x + COL_VALUE, ry + 1, x + COL_DEL - 3, ry + RULE_H - 1, 0xFF0C0E11);
+            g.renderOutline(x + COL_VALUE, ry + 1, COL_DEL - 3 - COL_VALUE, RULE_H - 2, 0xFF3FD3FF);
+            valueBox.setX(x + COL_VALUE + 2);
+            valueBox.setY(ry + 2);
+            valueBox.render(g, mx, my, 0);
+        }
+        g.drawString(font, font.plainSubstrByWidth(Component.translatable("gui.omnilogistics.nbt.hint").getString(), NBT_W - 10),
+            x + 5, y + NBT_H - 10, MUTED, false);
+    }
+
+    private String tail(String s, int width) {
+        int i = s.length();
+        while (i > 0 && font.width(s.substring(i - 1)) <= width) i--;
+        return s.substring(i);
+    }
+
+    private void renderNbtPick(GuiGraphics g, int mx, int my) {
+        int x = ox(), y = oy();
+        frame(g, Component.translatable("gui.omnilogistics.nbt.pick_title"));
+        chip(g, headerChip(0) + 2, y + 1, 11, Component.literal("‹"), false, mx, my);
+        List<NbtRule.Leaf> all = leaves();
+        if (all.isEmpty()) {
+            g.drawString(font, Component.translatable("gui.omnilogistics.pick_empty"), x + 5, y + 20, MUTED, false);
+            return;
+        }
+        cursor = Math.min(cursor, all.size() - 1);
+        scroll = Math.max(0, Math.min(scroll, all.size() - PICK_ROWS));
+        for (int i = 0; i < PICK_ROWS && i + scroll < all.size(); i++) {
+            int idx = i + scroll;
+            NbtRule.Leaf leaf = all.get(idx);
+            int ry = y + 15 + i * ROW_H;
+            boolean hover = in(mx, my, x, ry, NBT_W, ROW_H);
+            if (hover) g.fill(x + 2, ry, x + NBT_W - 7, ry + ROW_H, 0xFF2A2F37);
+            if (idx == cursor) g.renderOutline(x + 2, ry, NBT_W - 9, ROW_H, 0xFF3FD3FF);
+            // the end of a path is the part that says what it is, so a long one loses its beginning
+            String path = NbtRule.pretty(leaf.path());
+            int room = 150;
+            if (font.width(path) > room) path = "…" + tail(path, room - font.width("…"));
+            int pw = font.width(path);
+            if (leaf.patched()) g.drawString(font, "*", x + 4, ry + 2, 0xFF3FD3FF, false);
+            g.drawString(font, path, x + 10, ry + 2, leaf.patched() ? TEXT : MUTED, false);
+            pw += 5;
+            g.drawString(font, "=", x + 8 + pw, ry + 2, MUTED, false);
+            int vx = x + 16 + pw, vw = x + NBT_W - 10 - vx;
+            if (vw > 12) g.drawString(font, font.plainSubstrByWidth(leaf.value(), vw), vx, ry + 2, 0xFFFFC04A, false);
+            if (hover) hoverTip = Component.literal(String.join(" / ", leaf.path())).append("\n").append(leaf.value());
+        }
+        scrollbar(g, x + NBT_W - 5, y + 15, PICK_ROWS, ROW_H, all.size());
+        g.drawString(font, font.plainSubstrByWidth(Component.translatable("gui.omnilogistics.nbt.pick_hint").getString(), NBT_W - 10),
+            x + 5, y + NBT_H - 10, MUTED, false);
+    }
+
+    private void startEdit(int index) {
+        commitValue();
+        NbtRule r = menu.spec().rules().get(index);
+        if (!r.op().takesValue()) return;
+        editing = index;
+        valueBox.setValue(r.value());
+        valueBox.setFocused(true);
+        valueBox.moveCursorToEnd(false);
+    }
+
+    private void commitValue() {
+        if (editing < 0) return;
+        int i = editing;
+        editing = -1;
+        valueBox.setFocused(false);
+        String v = valueBox.getValue();
+        List<NbtRule> rules = menu.spec().rules();
+        if (i < rules.size() && !rules.get(i).value().equals(v)) editRule(i, r -> r.with(v));
+    }
+
+    private boolean clickRules(double mx, double my, int button) {
+        int x = ox(), y = oy();
+        if (in(mx, my, headerChip(0) + 2, y + 1, 11, 11)) { open(Picker.NBT); return true; }
+        if (in(mx, my, headerChip(1) + 2, y + 1, 48, 11)) { commitValue(); picker = Picker.NBT_PICK; cursor = scroll = 0; return true; }
+        if (in(mx, my, headerChip(2) + 2, y + 1, 48, 11)) { commitValue(); sendRules(menu.spec().rules(), !nbtAny()); return true; }
+        List<NbtRule> rules = menu.spec().rules();
+        int row = (int) ((my - y - 16) / RULE_H);
+        if (my < y + 16 || row < 0 || row >= RULE_ROWS || row + scroll >= rules.size()) { commitValue(); return true; }
+        int idx = row + scroll;
+        double cx = mx - x;
+        if (cx >= COL_VALUE && cx < COL_DEL - 3) { startEdit(idx); return true; }
+        commitValue();
+        if (cx >= 2 && cx < COL_PATH - 1) editRule(idx, NbtRule::toggled);
+        else if (cx >= COL_PATH && cx < COL_OP - 2) { if (rules.get(idx).hasListStep()) editRule(idx, NbtRule::anyIndex); }
+        else if (cx >= COL_OP && cx < COL_VALUE) editRule(idx, r -> r.with(r.op().next(button == 1 ? -1 : 1)));
+        else if (cx >= COL_DEL) editRule(idx, null);
+        return true;
+    }
+
+    // ---- input ----------------------------------------------------------------------
+
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
         if (picker == Picker.NONE) return super.mouseClicked(mx, my, button);
-        int x = leftPos + PICK_X, y = topPos + PICK_Y + shift;
-        if (mx < x || mx >= x + PICK_W || my < y || my >= y + PICK_H) {
+        int x = ox(), y = oy();
+        if (!in(mx, my, x, y, ow(), oh())) {
+            commitValue();
             picker = Picker.NONE;
             return true;
         }
+        if (picker == Picker.NBT) return clickRules(mx, my, button);
+        if (picker == Picker.NBT_PICK && in(mx, my, headerChip(0) + 2, y + 1, 11, 11)) {
+            picker = Picker.NBT;
+            cursor = scroll = 0;
+            return true;
+        }
         int row = (int) ((my - y - 15) / ROW_H);
-        List<String> opts = options();
-        if (my >= y + 15 && row >= 0 && row < ROWS && row + scroll < opts.size()) {
+        if (my >= y + 15 && row >= 0 && row < visibleRows() && row + scroll < count()) {
             cursor = row + scroll;
-            togglePick(opts.get(cursor));
+            choose(cursor);
         }
         return true;
     }
@@ -215,22 +483,38 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
     @Override
     public boolean mouseScrolled(double mx, double my, double dx, double dy) {
         if (picker == Picker.NONE) return super.mouseScrolled(mx, my, dx, dy);
-        moveCursor(dy > 0 ? -1 : 1, options().size());
+        if (picker == Picker.NBT) {
+            commitValue();
+            scroll = Math.max(0, Math.min(scroll + (dy > 0 ? -1 : 1), menu.spec().rules().size() - RULE_ROWS));
+            return true;
+        }
+        moveCursor(dy > 0 ? -1 : 1, count());
         return true;
     }
 
     @Override
     public boolean keyPressed(int key, int scan, int mods) {
         if (picker == Picker.NONE) return super.keyPressed(key, scan, mods);
-        List<String> opts = options();
+        if (editing >= 0) {
+            if (key == KEY_ENTER || key == KEY_KP_ENTER) commitValue();
+            else if (key == KEY_ESC) { editing = -1; valueBox.setFocused(false); }
+            else valueBox.keyPressed(key, scan, mods);
+            return true;   // nothing typed into a value may reach the inventory keys
+        }
         switch (key) {
-            case KEY_ESC -> picker = Picker.NONE;
-            case KEY_UP -> moveCursor(-1, opts.size());
-            case KEY_DOWN -> moveCursor(1, opts.size());
-            case KEY_ENTER, KEY_KP_ENTER -> { if (!opts.isEmpty()) togglePick(opts.get(Math.min(cursor, opts.size() - 1))); }
-            default -> { return true; } // swallow inventory keys while the picker is open
+            case KEY_ESC -> picker = picker == Picker.NBT_PICK ? Picker.NBT : Picker.NONE;
+            case KEY_UP -> { if (picker != Picker.NBT) moveCursor(-1, count()); }
+            case KEY_DOWN -> { if (picker != Picker.NBT) moveCursor(1, count()); }
+            case KEY_ENTER, KEY_KP_ENTER -> { if (picker != Picker.NBT && count() > 0) choose(Math.min(cursor, count() - 1)); }
+            default -> { return true; } // swallow inventory keys while an overlay is open
         }
         return true;
+    }
+
+    @Override
+    public boolean charTyped(char c, int mods) {
+        if (editing >= 0) return valueBox.charTyped(c, mods);
+        return picker == Picker.NONE ? super.charTyped(c, mods) : true;
     }
 
     // ---- rendering --------------------------------------------------------------
@@ -255,11 +539,20 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
         tagButton.setMessage(Component.translatable("gui.omnilogistics.tags_n", s.tags().size()));
         compButton.on = picker == Picker.COMPONENT;
         compButton.setMessage(Component.translatable("gui.omnilogistics.components_n", s.components().size()));
-        super.render(g, mouseX, mouseY, partialTick);
+        nbtButton.on = isNbt() || !s.rules().isEmpty();
+        nbtButton.setMessage(Component.translatable("gui.omnilogistics.nbt_n", s.rules().size()));
+        // with an overlay open nothing underneath is hovered, so no button or slot tooltip bleeds through it
+        super.render(g, picker == Picker.NONE ? mouseX : -1000, picker == Picker.NONE ? mouseY : -1000, partialTick);
         if (picker != Picker.NONE) {   // above slot items (z 150) and their count text (z 200), like a tooltip
+            hoverTip = null;
             g.pose().pushPose();
             g.pose().translate(0, 0, 400);
-            renderPicker(g, mouseX, mouseY);
+            switch (picker) {
+                case NBT -> renderRules(g, mouseX, mouseY);
+                case NBT_PICK -> renderNbtPick(g, mouseX, mouseY);
+                default -> renderPicker(g, mouseX, mouseY);
+            }
+            if (hoverTip != null) g.renderTooltip(font, font.split(hoverTip, 220), mouseX, mouseY);
             g.pose().popPose();
         }
     }
@@ -290,5 +583,11 @@ public class FilterScreen extends DarkScreen<FilterMenu> {
     protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
         super.renderLabels(g, mouseX, mouseY);
         g.drawString(font, Component.translatable("gui.omnilogistics.filter"), 8, 26, MUTED, false);   // short: the grid starts at x=56
+    }
+
+    @Override
+    public void removed() {
+        commitValue();
+        super.removed();
     }
 }

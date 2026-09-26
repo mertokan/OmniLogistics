@@ -133,6 +133,7 @@ public final class SelfTest {
         if (sl.getBlockEntity(distPos) instanceof com.mertokan.omnilogistics.distributor.DistributorBlockEntity d)
             d.cards.setStackInSlot(0, new ItemStack(OmniLogistics.CARD.get()));
         p.getInventory().setItem(1, new ItemStack(OmniLogistics.MULTI_CARDS.get(16).get()));   // the 16-slot filter panel
+        p.getInventory().setItem(2, nbtCard(sl));                                               // the NBT rules editor
         rowCenter = base.relative(Direction.NORTH, 7);
         showcase(sl, rowCenter);
         LOG.info("[SELFTEST] server: card in hand, router at {}, pipe at {}", routerPos, pipePos);
@@ -341,6 +342,31 @@ public final class SelfTest {
                 record("Elite card opens the 16-slot FilterScreen: " + ok + " (screen=" + name(mc) + ")");
                 shot(mc, "omni_gui_card16.png");
                 mc.player.closeContainer();
+                next(40);
+            }
+            case 40 -> { // a card with a worn, enchanted sword as reference and three NBT rules on it
+                if (timer < 20 || mc.screen != null) return;
+                mc.player.getInventory().selected = 2;
+                mc.gameMode.useItem(mc.player, InteractionHand.MAIN_HAND);
+                next(41);
+            }
+            case 41 -> {
+                if (timer < 20) return;
+                if (mc.screen instanceof FilterScreen fs) clickPanel(fs, 172 + 39, 130 + 9);   // the NBT button
+                next(42);
+            }
+            case 42 -> {
+                if (timer < 10) return;
+                record("NBT rules editor opens with the card's rules: " + (mc.screen instanceof FilterScreen)
+                    + " rules=" + com.mertokan.omnilogistics.router.LogisticsCardItem.spec(mc.player.getMainHandItem()).rules().size());
+                shot(mc, "omni_gui_nbt_rules.png");
+                if (mc.screen instanceof FilterScreen fs) clickPanel(fs, 6 + 244 - 16 - 52 + 2 + 24, 36 + 6);   // + Pick
+                next(43);
+            }
+            case 43 -> {
+                if (timer < 10) return;
+                shot(mc, "omni_gui_nbt_pick.png");
+                mc.player.closeContainer();
                 mc.player.getInventory().selected = 0;
                 next(22);
             }
@@ -484,6 +510,31 @@ public final class SelfTest {
         mc.player.connection.send(new net.minecraft.network.protocol.game.ServerboundPlayerActionPacket(
             net.minecraft.network.protocol.game.ServerboundPlayerActionPacket.Action.RELEASE_USE_ITEM,
             net.minecraft.core.BlockPos.ZERO, net.minecraft.core.Direction.DOWN));
+    }
+
+    /** Click a point given in panel coordinates, the way the player would. */
+    private static void clickPanel(FilterScreen fs, int px, int py) {
+        int left = (fs.width - FilterScreen.WIDTH) / 2, top = (fs.height - com.mertokan.omnilogistics.core.FilterMenu.height(1)) / 2;
+        fs.mouseClicked(left + px, top + py, 0);
+    }
+
+    /** A plain card whose reference is a worn, enchanted, renamed sword, with three rules picked from it. */
+    private static ItemStack nbtCard(ServerLevel sl) {
+        var ench = sl.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT);
+        ItemStack sword = new ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD);
+        sword.enchant(ench.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SHARPNESS), 4);
+        sword.enchant(ench.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.UNBREAKING), 3);
+        sword.set(net.minecraft.core.component.DataComponents.DAMAGE, 120);
+        sword.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, net.minecraft.network.chat.Component.literal("Night Blade"));
+        ItemStack card = new ItemStack(OmniLogistics.CARD.get());
+        com.mertokan.omnilogistics.router.CardConfig.setFilter(card, sword);
+        com.mertokan.omnilogistics.router.CardConfig.apply(card, com.mertokan.omnilogistics.router.CardConfig.modes(card),
+            com.mertokan.omnilogistics.api.ComponentPredicateEngine.MATCH_ITEM | com.mertokan.omnilogistics.api.ComponentPredicateEngine.MATCH_NBT, List.of(), List.of(), List.of(
+                new com.mertokan.omnilogistics.api.NbtRule(List.of("minecraft:damage"), com.mertokan.omnilogistics.api.NbtRule.Op.LT, "200", true),
+                new com.mertokan.omnilogistics.api.NbtRule(List.of("minecraft:enchantments", "levels", "minecraft:sharpness"),
+                    com.mertokan.omnilogistics.api.NbtRule.Op.GE, "3", true),
+                new com.mertokan.omnilogistics.api.NbtRule(List.of("minecraft:custom_name"), com.mertokan.omnilogistics.api.NbtRule.Op.CONTAINS, "blade", true)));
+        return card;
     }
 
     private static void shot(Minecraft mc, String file) {

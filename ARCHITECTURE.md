@@ -453,6 +453,31 @@ in `ClientSetup.ritualHand` now moves both: the card is walked in toward the mid
 scrape against each other. Third person keeps the plain brush pose - posing both arms there needs a model hook that is
 not worth a mixin.
 
+## 21. NBT rules (2026-09-26)
+
+The flags cover the one-click cases; an `NbtRule` covers everything else. A rule is a path into the item's data, an
+operator and a value, and the item's data is every component on the stack - item defaults included, so "damage = 0"
+holds on a fresh sword - serialized to one compound keyed by component id (`NbtRule.components`).
+
+- **Path as a key list**, not a dotted string: component and registry ids are full of dots and colons. `[3]` indexes a
+  list; `*` means any element, which is what makes "a shulker box with diamonds in any slot" expressible.
+- **Operators**: = != > >= < <= has lacks contains. Numbers compare by value whatever their NBT width; a value that is
+  not SNBT is taken as a plain string, so nobody has to type quotes. `contains` is substring on text, element of a list,
+  key of a compound.
+- **ALL / ANY** is a flag (`NBT_ANY`), and `MATCH_NBT` follows whether there are rules, like the tag and component
+  pickers. No enabled rule lets everything through.
+- **Registries**: holder-carrying components (enchantments) only serialize with the registries, so the engine uses
+  the server's when there is one in the process; the GUI passes the client level's.
+- **Storage**: `CARD_NBT` on cards (synced), `Nbt` in `FilterSpec.save` for blocks, and `FilterConfigPayload` now
+  writes itself field by field because a seventh field is past what `StreamCodec.composite` takes.
+- **GUI**: the bottom row of the filter panel is now Tags / Comps / NBT, lined up with the flag grid. The NBT overlay
+  lists rules (on/off box, path, operator, value, delete); `+ Pick` lists every leaf of the reference item's data,
+  the changed-from-default ones first, and a click makes it a rule. Long paths lose their beginning, not their end,
+  because the end is the part that says what the value is.
+
+The idea comes from LogisticsNetwork's NBT filter. That mod is All Rights Reserved, so nothing was taken from its code;
+this is a separate implementation that goes further in two places (any-element paths, numeric-by-value equality).
+
 ## Build
 
 Needs JDK 21 on PATH (none found on this machine; CurseForge only ships a JRE) and Gradle 8.8+:

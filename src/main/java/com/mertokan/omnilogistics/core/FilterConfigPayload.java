@@ -1,6 +1,7 @@
 package com.mertokan.omnilogistics.core;
 
 import com.mertokan.omnilogistics.api.FilterSpec;
+import com.mertokan.omnilogistics.api.NbtRule;
 import com.mertokan.omnilogistics.OmniLogistics;
 import com.mertokan.omnilogistics.router.CardHost;
 import com.mertokan.omnilogistics.router.CardSlots;
@@ -24,22 +25,37 @@ import java.util.List;
  * or a card sitting in a block slot ({@code hand <= -2}, see {@link SlotCardHost#handCode}).
  * The reference stack goes through the ghost slot, not this payload.
  */
-public record FilterConfigPayload(BlockPos pos, int hand, byte[] modes, int flags, List<String> tags, List<String> components)
-    implements CustomPacketPayload {
+public record FilterConfigPayload(BlockPos pos, int hand, byte[] modes, int flags, List<String> tags, List<String> components,
+                                  List<NbtRule> rules) implements CustomPacketPayload {
     public static final Type<FilterConfigPayload> TYPE =
         new Type<>(ResourceLocation.fromNamespaceAndPath(OmniLogistics.MODID, "filter_config"));
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, FilterConfigPayload> CODEC = StreamCodec.composite(
-        BlockPos.STREAM_CODEC, FilterConfigPayload::pos,
-        ByteBufCodecs.VAR_INT, FilterConfigPayload::hand,
-        ByteBufCodecs.BYTE_ARRAY, FilterConfigPayload::modes,
-        ByteBufCodecs.VAR_INT, FilterConfigPayload::flags,
-        ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list(FilterSpec.MAX_TAGS)), FilterConfigPayload::tags,
-        ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list(FilterSpec.MAX_COMPONENTS)), FilterConfigPayload::components,
-        FilterConfigPayload::new);
+    private static final StreamCodec<io.netty.buffer.ByteBuf, List<String>> TAGS =
+        ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list(FilterSpec.MAX_TAGS));
+    private static final StreamCodec<io.netty.buffer.ByteBuf, List<String>> COMPONENTS =
+        ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list(FilterSpec.MAX_COMPONENTS));
 
-    public static FilterConfigPayload of(FilterMenu menu, byte[] modes, int flags, List<String> tags, List<String> components) {
-        return new FilterConfigPayload(menu.pos, menu.hand, modes, flags, tags, components);
+    public static final StreamCodec<RegistryFriendlyByteBuf, FilterConfigPayload> CODEC =
+        StreamCodec.ofMember(FilterConfigPayload::write, FilterConfigPayload::read);
+
+    private void write(RegistryFriendlyByteBuf b) {
+        b.writeBlockPos(pos);
+        b.writeVarInt(hand);
+        b.writeByteArray(modes);
+        b.writeVarInt(flags);
+        TAGS.encode(b, tags);
+        COMPONENTS.encode(b, components);
+        NbtRule.LIST_STREAM_CODEC.encode(b, rules);
+    }
+
+    private static FilterConfigPayload read(RegistryFriendlyByteBuf b) {
+        return new FilterConfigPayload(b.readBlockPos(), b.readVarInt(), b.readByteArray(16), b.readVarInt(),
+            TAGS.decode(b), COMPONENTS.decode(b), NbtRule.LIST_STREAM_CODEC.decode(b));
+    }
+
+    public static FilterConfigPayload of(FilterMenu menu, byte[] modes, int flags, List<String> tags, List<String> components,
+                                         List<NbtRule> rules) {
+        return new FilterConfigPayload(menu.pos, menu.hand, modes, flags, tags, components, rules);
     }
 
     @Override
@@ -52,7 +68,7 @@ public record FilterConfigPayload(BlockPos pos, int hand, byte[] modes, int flag
         if (!(ctx.player().containerMenu instanceof FilterMenu m) || m.hand != msg.hand() || !m.pos.equals(msg.pos())) return;
         FilterHost host = resolve(ctx.player(), msg.pos(), msg.hand());
         if (host != null && msg.modes().length == host.layout().modeCount())
-            host.applyConfig(msg.modes(), msg.flags(), msg.tags(), msg.components());
+            host.applyConfig(msg.modes(), msg.flags(), msg.tags(), msg.components(), msg.rules());
     }
 
     /** Trust boundary: the client picks pos/hand, so verify reach and item type. Works on both sides. */

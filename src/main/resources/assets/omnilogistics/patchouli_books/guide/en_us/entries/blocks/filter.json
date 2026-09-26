@@ -15,6 +15,14 @@
   {
    "type": "patchouli:text",
    "text": "$(bold)Has Enchants$(): any enchanted item, no reference needed.$(br)$(bold)Mod Comps$(): items carrying components from other mods, e.g. Apotheosis affixes or gems. No reference needed.$(br)$(bold)Ignore Dmg$(): durability is ignored when comparing.$(br)$(bold)Blacklist$(): let through everything that does NOT match."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "$(bold)NBT rules$() reach anywhere inside an item's data. Press $(bold)NBT$(), then $(bold)+ Pick$(): every value inside the reference item is listed - damage, each enchantment's level, a custom name, a mod's stored energy, the items inside a shulker box. Click one and it becomes a rule; click its operator to turn = into >=, !=, has, lacks or contains, click its value to type a new one."
+  },
+  {
+   "type": "patchouli:text",
+   "text": "Rules combine as $(bold)ALL$() (every one must hold) or $(bold)ANY$(). A path that runs through a list position can be switched to $(bold)any element$() by clicking it - that is how you catch a shulker box with diamonds in any slot. Rules need no reference item: with the slot empty they alone decide. Numbers compare by value, so 5, 5b and 5.0 are equal."
   }
  ]
 }

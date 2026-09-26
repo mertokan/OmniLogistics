@@ -15,5 +15,5 @@ public interface FilterHost {
     default int filterSlots() { return 1; }
     void setFilter(int index, ItemStack stack);
     /** Server side; modes.length == layout().modeCount already checked. */
-    void applyConfig(byte[] modes, int flags, List<String> tags, List<String> components);
+    void applyConfig(byte[] modes, int flags, List<String> tags, List<String> components, List<com.mertokan.omnilogistics.api.NbtRule> rules);
 }

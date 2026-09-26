@@ -93,13 +93,14 @@ public class ExposerBlockEntity extends TickingBlockEntity implements FilterHost
 
     /** Radio semantics: the side that is newly 1 wins; none set = no target. */
     @Override
-    public void applyConfig(byte[] modes, int flags, List<String> tags, List<String> components) {
+    public void applyConfig(byte[] modes, int flags, List<String> tags, List<String> components,
+                            List<com.mertokan.omnilogistics.api.NbtRule> rules) {
         Direction next = null;
         for (int i = 0; i < 6; i++)
             if (modes[i] == 1 && (target == null || i != target.ordinal())) { next = Direction.values()[i]; break; }
         if (next == null)
             for (int i = 0; i < 6; i++) if (modes[i] == 1) next = Direction.values()[i];
-        spec = spec.withConfig(flags, tags, components);
+        spec = spec.withConfig(flags, tags, components, rules);
         setTarget(next);
     }
 

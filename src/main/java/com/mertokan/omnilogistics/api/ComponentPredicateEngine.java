@@ -18,8 +18,8 @@ import java.util.Objects;
  * Unified DataComponent filter. One reference stack + a flag bitmask (+ a chosen tag, chosen component keys).
  * Every filter (pipe, exposer, router card) calls {@link #test(ItemStack, FilterSpec)}.
  *
- * ponytail: int bitmask instead of a rule-list/JSON DSL. Add a rule list when a
- * single reference stack + flags can't express what a pack needs.
+ * The flags cover the common cases in one click each; anything finer - a durability range, an enchantment level, a
+ * value deep in a mod's custom data - is an {@link NbtRule}, applied on top when MATCH_NBT is set.
  */
 public final class ComponentPredicateEngine {
     private ComponentPredicateEngine() {}
@@ -42,6 +42,10 @@ public final class ComponentPredicateEngine {
     public static final int MATCH_TAG        = 1 << 7;
     /** Only the chosen component keys must equal the reference's values. */
     public static final int MATCH_SELECTED   = 1 << 8;
+    /** The NBT rules apply (set by the GUI whenever there is at least one). */
+    public static final int MATCH_NBT        = 1 << 9;
+    /** NBT rules: one holding rule is enough, instead of all of them. */
+    public static final int NBT_ANY          = 1 << 10;
 
     public static final int DEFAULT = MATCH_ITEM;
 
@@ -57,6 +61,8 @@ public final class ComponentPredicateEngine {
             r &= hasEnchantments(stack);
         if (r && has(flags, HAS_MOD_COMPONENTS))
             r &= hasModComponents(stack);
+        if (r && has(flags, MATCH_NBT) && !spec.rules().isEmpty())
+            r &= NbtRule.test(stack, spec.rules(), has(flags, NBT_ANY), registries());
         return r ^ has(flags, INVERT);
     }
 
@@ -82,6 +88,13 @@ public final class ComponentPredicateEngine {
     /** Convenience for the simple cases (tests, extractor). */
     public static boolean test(ItemStack stack, ItemStack reference, int flags) {
         return test(stack, new FilterSpec(reference.isEmpty() ? List.of() : List.of(reference), flags, List.of(), List.of()));
+    }
+
+    /** The server's registries when there is a server in this process; enchantments and other holders need them to
+     *  serialize. A pure client has none, and only ever tests filters for display. */
+    private static net.minecraft.core.HolderLookup.@org.jetbrains.annotations.Nullable Provider registries() {
+        var server = net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer();
+        return server == null ? null : server.registryAccess();
     }
 
     public static boolean inAnyTag(ItemStack stack, List<String> tags) {

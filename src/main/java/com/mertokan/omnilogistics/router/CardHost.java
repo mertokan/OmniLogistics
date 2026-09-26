@@ -22,7 +22,8 @@ public record CardHost(Player player, InteractionHand hand) implements FilterHos
     @Override public void setFilter(int index, ItemStack s) { CardConfig.setFilter(stack(), index, s); }
 
     @Override
-    public void applyConfig(byte[] modes, int flags, List<String> tags, List<String> components) {
-        CardConfig.apply(stack(), modes, flags, tags, components);
+    public void applyConfig(byte[] modes, int flags, List<String> tags, List<String> components,
+                            List<com.mertokan.omnilogistics.api.NbtRule> rules) {
+        CardConfig.apply(stack(), modes, flags, tags, components, rules);
     }
 }

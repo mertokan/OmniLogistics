@@ -68,7 +68,7 @@ class EngineAndExtractorTest {
         assertTrue(multi.test(new ItemStack(Items.COBBLESTONE)));
         assertTrue(multi.test(new ItemStack(Items.IRON_INGOT)));
         assertFalse(multi.test(new ItemStack(Items.GOLD_INGOT)));
-        assertTrue(multi.withConfig(MATCH_ITEM | INVERT, java.util.List.of(), java.util.List.of()).test(new ItemStack(Items.GOLD_INGOT)));
+        assertTrue(multi.withConfig(MATCH_ITEM | INVERT, java.util.List.of(), java.util.List.of(), java.util.List.of()).test(new ItemStack(Items.GOLD_INGOT)));
 
         // MATCH_TAG is not unit-testable here: item tags are datapack data, not bound by Bootstrap. Covered in-game.
 

@@ -221,7 +221,8 @@ public class LogisticsCardItem extends Item {
             card.getOrDefault(OmniLogistics.CARD_FILTER.get(), com.mertokan.omnilogistics.api.FilterRef.EMPTY).stacks(),
             card.getOrDefault(OmniLogistics.CARD_FLAGS.get(), ComponentPredicateEngine.DEFAULT),
             card.getOrDefault(OmniLogistics.CARD_TAGS.get(), List.of()),
-            card.getOrDefault(OmniLogistics.CARD_COMPONENTS.get(), List.of()));
+            card.getOrDefault(OmniLogistics.CARD_COMPONENTS.get(), List.of()),
+            card.getOrDefault(OmniLogistics.CARD_NBT.get(), List.of()));
     }
 
     /** Level the card points at, or null if unbound / unloaded / out of range. */
@@ -371,5 +372,15 @@ public class LogisticsCardItem extends Item {
         else if (n > 1) out.add(Component.translatable("tooltip.omnilogistics.card_filter_n", n, s.ref().getHoverName()));
         if (!s.tags().isEmpty()) out.add(Component.translatable("tooltip.omnilogistics.card_tag", String.join(", ", s.tags())));
         if (!s.components().isEmpty()) out.add(Component.translatable("tooltip.omnilogistics.card_components", String.join(", ", s.components())));
+        if (!s.rules().isEmpty()) {
+            boolean any = (s.flags() & ComponentPredicateEngine.NBT_ANY) != 0;
+            out.add(Component.translatable(any ? "tooltip.omnilogistics.card_nbt_any" : "tooltip.omnilogistics.card_nbt_all", s.rules().size()));
+            for (var r : s.rules()) {
+                if (!r.enabled()) continue;
+                out.add(Component.literal("  " + com.mertokan.omnilogistics.api.NbtRule.pretty(r.path()) + " ")
+                    .append(Component.translatable("gui.omnilogistics.nbt.op." + r.op().key()))
+                    .append(r.op().takesValue() ? " " + r.value() : "").withStyle(net.minecraft.ChatFormatting.GRAY));
+            }
+        }
     }
 }
