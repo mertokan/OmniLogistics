@@ -664,7 +664,8 @@ public final class Showcase {
         if (sl.getBlockEntity(provider) != null) {
             out.add(check("ME pattern provider holds the encoded pattern",
                 sl.getBlockEntity(provider).saveWithoutMetadata(sl.registryAccess()).contains("patterns")));
-            out.add(check("ME network stocked " + MEK_PRODUCT, has(sl, stock8, item(MEK_PRODUCT, 1).getItem())));
+            if (!item(MEK_PRODUCT, 1).isEmpty())            // the loop's machine is Mekanism's: no Mekanism, nothing to stock
+                out.add(check("ME network stocked " + MEK_PRODUCT, has(sl, stock8, item(MEK_PRODUCT, 1).getItem())));
             String ifaceNbt = sl.getBlockEntity(stock8) == null ? "-"
                 : sl.getBlockEntity(stock8).saveWithoutMetadata(sl.registryAccess()).toString();
             out.add("info ME iface nbt " + ifaceNbt.substring(0, Math.min(300, ifaceNbt.length())));
@@ -742,7 +743,7 @@ public final class Showcase {
 
     private static boolean has(ServerLevel sl, BlockPos pos, Item item) {
         IItemHandler h = sl.getCapability(Capabilities.ItemHandler.BLOCK, pos, null);
-        if (h == null) return false;
+        if (h == null || item == net.minecraft.world.item.Items.AIR) return false;   // a missing mod's item is air: never "found"
         for (int i = 0; i < h.getSlots(); i++) if (h.getStackInSlot(i).is(item)) return true;
         return false;
     }

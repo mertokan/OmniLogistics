@@ -5,6 +5,7 @@ plugins {
 
 group = 'com.mertokan.omnilogistics'
 version = '0.2.0'
+base { archivesName = 'omnilogistics-1.21.1' }   // the jar says which Minecraft it is for
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
@@ -49,12 +50,13 @@ neoForge {
 repositories {
     mavenCentral()
     maven { url = 'https://maven.blamejared.com' }   // JEI api (+ Placebo / Apotheosis if ever needed)
+    maven { url = 'https://api.modrinth.com/maven'; content { includeGroup 'maven.modrinth' } }   // Jade
 }
 
 dependencies {
     // ponytail: no Cloth Config (NeoForge ModConfigSpec covers it), no Curios (no equipment slots in scope)
     compileOnly "mezz.jei:jei-1.21.1-neoforge-api:19.51.0.418"   // optional at runtime; plugin class only loads when JEI is present
-    compileOnly files("libs/Jade-1.21.1-NeoForge-15.10.6.jar")     // optional at runtime; @WailaPlugin class only loads when Jade is present
+    compileOnly "maven.modrinth:jade:15.10.6+neoforge"   // optional at runtime; @WailaPlugin class only loads when Jade is present
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

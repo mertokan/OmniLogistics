@@ -3,6 +3,12 @@ import json
 import os
 
 RES = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'main', 'resources')
+# One script for every branch: the NeoForge version in build.gradle says which data formats to write.
+# 21.x = Minecraft 1.21.1 (item overrides, {"item": ...} ingredients); 26.x = Minecraft 26.1 (item model
+# definitions in assets/<ns>/items, plain-string ingredients).
+import re as _re
+_BUILD = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'build.gradle'), encoding='utf-8').read()
+MODERN = int(_re.search(r"^\s+version = '(\d+)\.", _BUILD, _re.M).group(1)) >= 26   # the indented one: NeoForge's, not the mod's
 A = 'assets/omnilogistics'
 D = 'data/omnilogistics'
 
@@ -15,6 +21,8 @@ def w(p, o):
 
 
 def ing(v):
+    if MODERN:
+        return v                      # "minecraft:iron_ingot" or "#c:ingots/iron", as a plain string since 1.21.2
     return {"tag": v[1:]} if v.startswith('#') else {"item": v}
 
 
@@ -232,7 +240,7 @@ def gen(t):
 
 
 w(f'{A}/models/item/wrench.json', gen("wrench"))
-for t in ("speed_upgrade", "parallel_upgrade", "range_upgrade", "gem_module", "fusion_module"):
+for t in ("speed_upgrade", "parallel_upgrade", "range_upgrade", "chunk_upgrade", "gem_module", "fusion_module"):
     w(f'{A}/models/item/{t}.json', gen(t))
 CARD_KINDS = {"advanced_logistics_card": ("card_x4", True), "elite_logistics_card": ("card_x16", True),
               "ultimate_logistics_card": ("card_x64", True),
@@ -240,6 +248,7 @@ CARD_KINDS = {"advanced_logistics_card": ("card_x4", True), "elite_logistics_car
               "vacuum_card": ("card_vacuum", False), "activator_card": ("card_activator", False), "breaker_card": ("card_breaker", False),
               "placer_card": ("card_placer", False), "detector_card": ("card_detector", False),
               "stock_card": ("card_stock", False)}
+CARD_BASES = dict({k: v for k, v in CARD_KINDS.items()}, logistics_card=("card", True))
 for item, (base, has_mode) in CARD_KINDS.items():
     w(f'{A}/models/item/{base}_extract_bound.json', gen(base + "_extract_bound"))
     overrides = [{"predicate": {"omnilogistics:bound": 1}, "model": f"omnilogistics:item/{base}_extract_bound"}]
@@ -248,13 +257,38 @@ for item, (base, has_mode) in CARD_KINDS.items():
         w(f'{A}/models/item/{base}_insert_bound.json', gen(base + "_insert_bound"))
         overrides += [{"predicate": {"omnilogistics:mode": 1}, "model": f"omnilogistics:item/{base}_insert"},
                       {"predicate": {"omnilogistics:mode": 1, "omnilogistics:bound": 1}, "model": f"omnilogistics:item/{base}_insert_bound"}]
-    w(f'{A}/models/item/{item}.json', dict(gen(base + "_extract"), overrides=overrides))
+    w(f'{A}/models/item/{item}.json', gen(base + "_extract") if MODERN else dict(gen(base + "_extract"), overrides=overrides))
 for t in ("card_extract_bound", "card_insert", "card_insert_bound"):
     w(f'{A}/models/item/{t}.json', gen(t))
-w(f'{A}/models/item/logistics_card.json', dict(gen("card_extract"), overrides=[
+w(f'{A}/models/item/logistics_card.json', gen("card_extract") if MODERN else dict(gen("card_extract"), overrides=[
     {"predicate": {"omnilogistics:bound": 1}, "model": "omnilogistics:item/card_extract_bound"},
     {"predicate": {"omnilogistics:mode": 1}, "model": "omnilogistics:item/card_insert"},
     {"predicate": {"omnilogistics:mode": 1, "omnilogistics:bound": 1}, "model": "omnilogistics:item/card_insert_bound"}]))
+
+# ---- item model definitions (Minecraft 1.21.4+): every item says which model it uses, cards by condition ----
+def item_definitions():
+    lang = json.load(open(os.path.join(RES, A, 'lang', 'en_us.json'), encoding='utf-8'))
+    ids = sorted({k.split('.', 2)[2] for k in lang if k.startswith(('item.omnilogistics.', 'block.omnilogistics.'))})
+    one = lambda m: {"type": "minecraft:model", "model": m}
+    def cond(prop, yes, no):
+        return {"type": "minecraft:condition", "property": prop, "on_true": yes, "on_false": no}
+    for i in ids:
+        if i in CARD_BASES:
+            base, has_mode = CARD_BASES[i]
+            plain, bound = one(f"omnilogistics:item/{i}"), one(f"omnilogistics:item/{base}_extract_bound")
+            if has_mode:
+                model = cond("omnilogistics:bound",
+                             cond("omnilogistics:insert", one(f"omnilogistics:item/{base}_insert_bound"), bound),
+                             cond("omnilogistics:insert", one(f"omnilogistics:item/{base}_insert"), plain))
+            else:
+                model = cond("omnilogistics:bound", bound, plain)
+        else:
+            model = one(f"omnilogistics:item/{i}")
+        w(f'{A}/items/{i}.json', {"model": model})
+
+
+if MODERN:
+    item_definitions()
 
 # ---- loot tables ---------------------------------------------------------------------
 
